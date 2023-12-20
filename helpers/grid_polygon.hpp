@@ -1,14 +1,12 @@
 #pragma once
 
 #include <vector>
+#include "point_helper.hpp"
 
 namespace helper {
 
-// TODO: Change this to class Point
-using Position = std::pair<int64_t, int64_t>;
-
 struct GridPolygon {
-    std::vector<Position> points;
+    std::vector<helper::Point> points;
 
     int64_t shoelace() const {
         int64_t area = 0;
@@ -17,7 +15,7 @@ struct GridPolygon {
         int64_t j = points.size() - 1;
         for (int64_t i = 0; i < points.size(); i++)
         {
-            area += (points[j].first + points[i].first) * (points[j].second - points[i].second);
+            area += (points[j].x + points[i].x) * (points[j].y - points[i].y);
             j = i;
         }
 
@@ -29,7 +27,7 @@ struct GridPolygon {
         auto prev = points[0];
 
         for (int64_t i = 1; i < points.size(); i++) {
-            perimeter += std::abs(prev.first - points[i].first) + std::abs(prev.second - points[i].second);
+            perimeter += prev.manhattanDistance(points[i]);
             prev = points[i];
         }
         return perimeter;

@@ -34,3 +34,4 @@
 #include "print_helper.hpp"
 #include "grid_polygon.hpp"
 #include "container_helper.hpp"
+#include "point_helper.hpp"

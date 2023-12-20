@@ -2,10 +2,8 @@
 
 #define INPUT "input.txt"
 
-using Point = std::pair<int64_t, int64_t>;
-
 std::vector<std::string> pipeMap;
-Point startingPosition;
+helper::Point startingPosition;
 
 #define TB '|'
 #define LR '-'
@@ -17,7 +15,7 @@ Point startingPosition;
 #define START 'S'
 #define INVALID {-1, -1}
 
-bool isWall(Point position) {
+bool isWall(helper::Point position) {
     auto[row, col] = position;
     if (row < 0 || row >= pipeMap.size()) return true;
     if (col < 0 || col >= pipeMap[0].size()) return true;
@@ -32,46 +30,46 @@ enum Direction {
 };
 
 struct Pipe {
-    Point position;
-    std::array<Point, 4> connections; // in and out
+    helper::Point position;
+    std::array<helper::Point, 4> connections; // in and out
 
-    Pipe(const Point position) : position(position) {
+    Pipe(const helper::Point position) : position(position) {
         char pipe = '.';
         if (!isWall(position))
-            pipe = pipeMap[position.first][position.second];
+            pipe = pipeMap[position.x][position.y];
         connections[Direction::LEFT] = INVALID;
         connections[Direction::RIGHT] = INVALID;
         connections[Direction::TOP] = INVALID;
         connections[Direction::BOTTOM] = INVALID;
         if (pipe == LR) {
-            connections[Direction::LEFT] = {position.first, position.second - 1};
-            connections[Direction::RIGHT] = {position.first, position.second + 1};
+            connections[Direction::LEFT] = position + helper::Point::LEFT;
+            connections[Direction::RIGHT] = position + helper::Point::RIGHT;
         }
         else if (pipe == TB) {
-            connections[Direction::TOP] = {position.first - 1, position.second};
-            connections[Direction::BOTTOM] = {position.first + 1, position.second};
+            connections[Direction::TOP] = position + helper::Point::UP;
+            connections[Direction::BOTTOM] = position + helper::Point::DOWN;
         }
         else if (pipe == TR) {
-            connections[Direction::TOP] = {position.first - 1, position.second};
-            connections[Direction::RIGHT] = {position.first, position.second + 1};
+            connections[Direction::TOP] = position + helper::Point::UP;
+            connections[Direction::RIGHT] = position + helper::Point::RIGHT;
         }
         else if (pipe == TL) {
-            connections[Direction::TOP] = {position.first - 1, position.second};
-            connections[Direction::LEFT] = {position.first, position.second - 1};
+            connections[Direction::TOP] = position + helper::Point::UP;
+            connections[Direction::LEFT] = position + helper::Point::LEFT;
         }
         else if (pipe == BR) {
-            connections[Direction::BOTTOM] = {position.first + 1, position.second};
-            connections[Direction::RIGHT] = {position.first, position.second + 1};
+            connections[Direction::BOTTOM] = position + helper::Point::DOWN;
+            connections[Direction::RIGHT] = position + helper::Point::RIGHT;
         }
         else if (pipe == BL) {
-            connections[Direction::BOTTOM] = {position.first + 1, position.second};
-            connections[Direction::LEFT] = {position.first, position.second - 1};
+            connections[Direction::BOTTOM] = position + helper::Point::DOWN;
+            connections[Direction::LEFT] = position + helper::Point::LEFT;
         }
         else if(pipe == START) {
-            connections[Direction::LEFT] = {position.first, position.second - 1};
-            connections[Direction::RIGHT] = {position.first, position.second + 1};
-            connections[Direction::TOP] = {position.first - 1, position.second};
-            connections[Direction::BOTTOM] = {position.first + 1, position.second};
+            connections[Direction::LEFT] = position + helper::Point::LEFT;
+            connections[Direction::RIGHT] = position + helper::Point::RIGHT;
+            connections[Direction::TOP] = position + helper::Point::UP;
+            connections[Direction::BOTTOM] = position + helper::Point::DOWN;
         }
     }
 
@@ -96,12 +94,12 @@ struct Pipe {
     }
 
     // Get exit position for given entry position
-    Point getExit(Point entry) const {
+    helper::Point getExit(helper::Point entry) const {
         // Filter invalid and entry
-        Point result = INVALID;
+        helper::Point result = INVALID;
         int32_t count = 0;
         for (auto connection : connections) {
-            if (connection != (Point)INVALID && connection != entry) {
+            if (connection != (helper::Point)INVALID && connection != entry) {
                 result = connection;
                 count++;
             }
@@ -114,8 +112,8 @@ struct Pipe {
     }
 };
 
-std::pair<std::vector<Point>, bool> getPath(Pipe pipe) {
-    std::vector<Point> result = {startingPosition};
+std::pair<std::vector<helper::Point>, bool> getPath(Pipe pipe) {
+    std::vector<helper::Point> result = {startingPosition};
 
     auto entryPos = startingPosition;
     auto exitPos = pipe.getExit(entryPos);
@@ -124,7 +122,7 @@ std::pair<std::vector<Point>, bool> getPath(Pipe pipe) {
 
     while(true) {
         if (exitPos == startingPosition) break;
-        if (exitPos == (Point)INVALID) break;
+        if (exitPos == (helper::Point)INVALID) break;
 
         Pipe exitPipe(exitPos);
         auto temp = exitPipe.getExit(entryPos);
@@ -136,7 +134,7 @@ std::pair<std::vector<Point>, bool> getPath(Pipe pipe) {
     return {result, exitPos == startingPosition};
 }
 
-std::vector<Point> getValidPath() {
+std::vector<helper::Point> getValidPath() {
     Pipe start(startingPosition);
 
     auto [lPath, lValid] = getPath(start.getLeft());
@@ -144,12 +142,12 @@ std::vector<Point> getValidPath() {
     auto [tPath, tValid] = getPath(start.getTop());
     auto [bPath, bValid] = getPath(start.getBottom());
 
-    if (tValid && bValid) pipeMap[startingPosition.first][startingPosition.second] = TB;
-    if (tValid && lValid) pipeMap[startingPosition.first][startingPosition.second] = TL;
-    if (tValid && rValid) pipeMap[startingPosition.first][startingPosition.second] = TR;
-    if (lValid && rValid) pipeMap[startingPosition.first][startingPosition.second] = LR;
-    if (bValid && lValid) pipeMap[startingPosition.first][startingPosition.second] = BL;
-    if (bValid && rValid) pipeMap[startingPosition.first][startingPosition.second] = BR;
+    if (tValid && bValid) pipeMap[startingPosition.x][startingPosition.y] = TB;
+    if (tValid && lValid) pipeMap[startingPosition.x][startingPosition.y] = TL;
+    if (tValid && rValid) pipeMap[startingPosition.x][startingPosition.y] = TR;
+    if (lValid && rValid) pipeMap[startingPosition.x][startingPosition.y] = LR;
+    if (bValid && lValid) pipeMap[startingPosition.x][startingPosition.y] = BL;
+    if (bValid && rValid) pipeMap[startingPosition.x][startingPosition.y] = BR;
 
     if (lValid) return lPath;
     if (rValid) return rPath;
@@ -159,7 +157,7 @@ std::vector<Point> getValidPath() {
     return {};
 }
 
-int32_t calculateAreaInside(const std::vector<Point> &path) {
+int32_t calculateAreaInside(const std::vector<helper::Point> &path) {
     // Construct polygon
     helper::GridPolygon polygon;
 
@@ -183,15 +181,13 @@ int32_t main() {
         std::getline(input, inputRow);
         if (inputRow.empty()) continue;
 
-        // std::stringstream inputStream(inputRow);
-
         if (inputRow.find(START) != std::string::npos) {
-            startingPosition = {pipeMap.size(), inputRow.find(START)};
+            startingPosition = helper::Point(pipeMap.size(), inputRow.find(START));
         }
         pipeMap.push_back(inputRow);
     }
 
-    std::vector<Point> path = getValidPath();
+    std::vector<helper::Point> path = getValidPath();
 
     std::cout << path.size() / 2 << std::endl;
 
