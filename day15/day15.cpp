@@ -2,14 +2,6 @@
 
 #define INPUT "input.txt"
 
-template <typename T>
-void printVector(const std::vector<T>& c)
-{
-    for (auto i : c)
-        std::cout << i << ' ';
-    std::cout << '\n';
-}
-
 template <class T>
 inline void hash_combine(std::size_t& seed, const T& v)
 {

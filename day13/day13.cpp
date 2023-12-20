@@ -2,14 +2,6 @@
 
 #define INPUT "input.txt"
 
-template <typename T>
-void printVector(const std::vector<T>& c)
-{
-    for (auto i : c)
-        std::cout << i << ' ';
-    std::cout << '\n';
-}
-
 auto split(const std::vector<std::string> &grid, int32_t splitPoint) {
     // Split vector into two vectors [0, splitPoint) [splitPoint, end]
     // But make them equal by cutting `left` to the left or `right` to the right
