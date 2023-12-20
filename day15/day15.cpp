@@ -74,22 +74,12 @@ struct Box {
     void removeLens(const Lens &lens) {
         auto res = std::find(lenses.begin(), lenses.end(), lens);
         if (res != lenses.end()) {
-            std::cout << "Remove " << lens.label << std::endl;
             lenses.erase(res);
         }
     }
 };
 
 std::array<Box, 256> boxes;
-
-void printBoxes() {
-    for (int32_t box = 0; box < boxes.size(); box++) {
-        auto &lenses = boxes[box].lenses;
-        for (int32_t lens = 0; lens < lenses.size(); lens++) {
-            std::cout << "Box " << box << ": [" << lenses[lens].label << " " << lenses[lens].focalLength << "]" << std::endl;
-        }
-    }
-}
 
 int32_t main() {
 
@@ -133,8 +123,6 @@ int32_t main() {
 
         // std::cout << inputRow << std::endl;
     }
-
-    printBoxes();
 
     for (int32_t box = 0; box < boxes.size(); box++) {
         auto &lenses = boxes[box].lenses;

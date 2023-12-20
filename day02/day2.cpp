@@ -7,35 +7,21 @@ struct HandPull {
     static const int32_t MAX_G = 13;
     static const int32_t MAX_B = 14;
 
-    int r = 0;
-    int g = 0;
-    int b = 0;
+    int32_t r = 0;
+    int32_t g = 0;
+    int32_t b = 0;
 
-    void dump() const {
-        std::cout << "r=" << r << " ";
-        std::cout << "g=" << g << " ";
-        std::cout << "b=" << b << " ";
-    }
-
-    int getPower() const {
+    int32_t getPower() const {
         return r * g * b;
     }
 };
 
 struct Game {
-    int id;
+    int32_t id;
     std::vector<HandPull> pulls;
 
-    void dump() const {
-        std::cout << "#" << id << ": ";
-        for (const auto &pull : pulls) {
-            pull.dump();
-            std::cout << ": ";
-        }
-        std::cout << std::endl;
-    }
-
     bool isValid() const {
+        if (pulls.empty()) return false;
         for (const auto &pull : pulls) {
             if (pull.r > HandPull::MAX_R) return false;
             if (pull.g > HandPull::MAX_G) return false;
@@ -54,7 +40,7 @@ struct Game {
         return maxPull;
     }
 
-    int getPower() const {
+    int32_t getPower() const {
         return getMax().getPower();
     }
 };
@@ -65,28 +51,19 @@ public:
         games.push_back(game);
     }
 
-    int totalPower() const {
-        int power = 0;
-        for (const auto &game : games) {
-            power += game.getPower();
-        }
-        return power;
+    int32_t totalPower() const {
+        auto powerView = games | std::views::transform([](const auto &g) {
+            return g.getPower();
+        });
+
+        return std::accumulate(powerView.begin(), powerView.end(), 0);
     }
 
-    int totalValid() const {
-        int valid = 0;
-        for (const auto &game : games) {
-            valid += game.isValid() ? game.id : 0;
-        }
-        return valid;
-    }
-
-    void dump() const {
-        for (const auto &game : games) {
-            game.dump();
-        };
-        std::cout << "Sum valid: " << totalValid() << std::endl;
-        std::cout << "Power: " << totalPower() << std::endl;
+    int32_t totalValid() const {
+        auto validView = games | std::views::transform([](const auto &g) {
+            return g.isValid() ? g.id : 0;
+        });
+        return std::accumulate(validView.begin(), validView.end(), 0);
     }
 
 private:
@@ -143,7 +120,8 @@ int32_t main() {
         games.add(std::move(game));
     }
 
-    games.dump();
+    std::cout << "Total valid: " << games.totalValid() << std::endl;
+    std::cout << "Total power: " << games.totalPower() << std::endl;
 
     return EXIT_SUCCESS;
 }

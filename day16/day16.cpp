@@ -81,9 +81,9 @@ int32_t calculateEnergy(Position startPos, Direction startDir) {
 
     std::function<void(Position, Direction)> move =
         [&](Position pos, Direction dir) -> void {
-            if (std::ranges::find(visited[pos], dir) != visited[pos].end()) return;
+            if (helper::find(visited[pos], dir)) return;
             if (!isValid(pos)) return;
-            visited[pos].push_back(dir);// = true;
+            visited[pos].push_back(dir);
 
             auto next = std::move(getNext(pos, dir));
             for (auto [nextPos, nextDir] : next) {

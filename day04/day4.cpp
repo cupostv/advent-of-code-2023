@@ -3,14 +3,14 @@
 #define INPUT "input.txt"
 
 struct ScratchCard {
-    int id;
-    std::vector<int> winningNumbers;
-    std::vector<int> myNumbers;
+    int32_t id;
+    std::vector<int32_t> winningNumbers;
+    std::vector<int32_t> myNumbers;
 
-    int getPoints() const {
-        int points = 0;
+    int32_t getPoints() const {
+        int32_t points = 0;
         for (auto num : myNumbers) {
-            if (std::find(winningNumbers.begin(), winningNumbers.end(), num) != winningNumbers.end()) {
+            if (helper::find(winningNumbers, num)) {
                 if (points == 0) {
                     points = 1;
                 } else {
@@ -21,39 +21,32 @@ struct ScratchCard {
         return points;
     }
 
-    int winCount() const {
-        int count = 0;
+    int32_t winCount() const {
+        int32_t count = 0;
         for (auto num : myNumbers) {
-            if (std::find(winningNumbers.begin(), winningNumbers.end(), num) != winningNumbers.end()) {
+            if (helper::find(winningNumbers, num)) {
                 count++;
             }
         }
         return count;
-    }
-
-    void dump() {
-        std::cout << "ID: " << id << std::endl;
-        for (auto number : winningNumbers) {
-            std::cout << number << " ";
-        }
     }
 };
 
 struct CardDeck {
     std::vector<ScratchCard> cards;
 
-    int getPoints() {
-        int points = 0;
+    int32_t getPoints() {
+        int32_t points = 0;
         for (const auto &card : cards) {
             points += card.getPoints();
         }
         return points;
     }
 
-    int getTotalCards() {
-        std::vector<int> counts(cards.size(), 1);
+    int32_t getTotalCards() {
+        std::vector<int32_t> counts(cards.size(), 1);
         for (const auto &card : cards) {
-            int count = card.winCount();
+            int32_t count = card.winCount();
             for (int32_t i = 0; i < count; i++) {
                 counts[card.id + i] += 1 * counts[card.id - 1];
             }
@@ -64,8 +57,8 @@ struct CardDeck {
 
 
 
-std::unordered_map<int, int> cards;
-std::vector<int> totalCards;
+std::unordered_map<int32_t, int32_t> cards;
+std::vector<int32_t> totalCards;
 
 int32_t main() {
 

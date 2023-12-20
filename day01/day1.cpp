@@ -2,63 +2,50 @@
 
 #define CALIBRATION "calibration.txt"
 
-const std::array<std::string, 10> numbers = {
-    "zero",
-    "one",
-    "two",
-    "three",
-    "four",
-    "five",
-    "six",
-    "seven",
-    "eight",
-    "nine"
+const std::unordered_map<std::string, int32_t> numbers = {
+    {"0", 0},
+    {"1", 1},
+    {"2", 2},
+    {"3", 3},
+    {"4", 4},
+    {"5", 5},
+    {"6", 6},
+    {"7", 7},
+    {"8", 8},
+    {"9", 9},
+    {"zero", 0},
+    {"one", 1},
+    {"two", 2},
+    {"three", 3},
+    {"four", 4},
+    {"five", 5},
+    {"six", 6},
+    {"seven", 7},
+    {"eight", 8},
+    {"nine", 9},
 };
-
-int32_t getNumberSubstring(const std::string_view str) {
-    if (str.size() < 3) return -1;
-    int32_t actualNum = -1;
-    int32_t minPosition = str.size();
-    for (int32_t i = 0; i < numbers.size(); i++) {
-        auto test = str.find(numbers[i]);
-        if (test != std::string_view::npos && test < minPosition) {
-            minPosition = test;
-            actualNum = i;
-        }
-    }
-
-    return actualNum;
-}
 
 int32_t decodeCalibrationEntry(const std::string_view entry) {
 
-    int32_t front = 0;
-    int32_t back = entry.size() - 1;
+    int32_t minFrontPos = entry.size();
+    int32_t frontNumber = 0;
+    int32_t maxBackPos = -1;
+    int32_t backNumber = 0;
 
-    int32_t firstDigit = -1;
-    int32_t lastDigit = -1;
-
-    while (firstDigit < 0 || lastDigit < 0) {
-        if (firstDigit < 0) {
-            auto strNumber = getNumberSubstring(entry.substr(0, front));
-            if (strNumber > 0)
-                firstDigit = strNumber;
-            else if (std::isdigit(entry[front]))
-                firstDigit = entry[front] - '0';
+    for (const auto &[key, value] : numbers) {
+        int32_t frontPos = entry.find(key);
+        if (frontPos != std::string_view::npos && frontPos < minFrontPos) {
+            minFrontPos = frontPos;
+            frontNumber = value;
         }
-        if (lastDigit < 0) {
-            auto strNumber = getNumberSubstring(entry.substr(back, entry.size() - 1));
-            if (strNumber > 0)
-                lastDigit = strNumber;
-            else if (std::isdigit(entry[back]))
-                lastDigit = entry[back] - '0';
+        int32_t backPos = entry.rfind(key);
+        if (backPos != std::string_view::npos && backPos > maxBackPos) {
+            maxBackPos = backPos;
+            backNumber = value;
         }
-
-        front++;
-        back--;
     }
 
-    return firstDigit * 10 + lastDigit;
+    return frontNumber * 10 + backNumber;
 }
 
 int32_t main() {
@@ -76,8 +63,6 @@ int32_t main() {
     }
 
     std::cout << sum << std::endl;
-
-    getNumberSubstring("jedantwo");
 
     return EXIT_SUCCESS;
 }

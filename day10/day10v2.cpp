@@ -172,46 +172,9 @@ std::vector<Point> getValidPath() {
     return {};
 }
 
-struct Polygon {
-    std::vector<Point> points;
-
-    double shoelace() const {
-        double area = 0;
-
-        // Calculate value of shoelace formula
-        int64_t j = points.size() - 1;
-        for (int64_t i = 0; i < points.size(); i++)
-        {
-            area += (points[j].first + points[i].first) * (points[j].second - points[i].second);
-            j = i;
-        }
-
-        return std::abs(area / 2);
-    }
-
-    int64_t perimeter() const {
-        int64_t perimeter = 0;
-        auto prev = points[0];
-
-        for (int64_t i = 1; i < points.size(); i++) {
-            perimeter += std::abs(prev.first - points[i].first) + std::abs(prev.second - points[i].second);
-            prev = points[i];
-        }
-        return perimeter;
-    }
-
-    double area() const {
-        return shoelace() + perimeter() / 2 + 1;
-    }
-
-    double areaInside() const {
-        return shoelace() - perimeter() / 2 + 1;
-    }
-};
-
 int32_t calculateAreaInside(const std::vector<Point> &path) {
     // Construct polygon
-    Polygon polygon;
+    helper::GridPolygon polygon;
 
     polygon.points = path;
 

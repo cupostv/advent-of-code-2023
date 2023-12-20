@@ -8,7 +8,7 @@ struct EngineSchematic {
     std::unordered_map<char, std::vector<int>> engineMap;
     std::unordered_map<int, std::vector<int>> gears;
 
-    std::pair<std::vector<int>, char> getAdjacentSymbol(const std::vector<std::vector<char>> &engineSchematic, int row, int col) const {
+    std::pair<std::vector<int>, char> getAdjacentSymbol(const std::vector<std::string> &engineSchematic, int row, int col) const {
         char tl = '.', tm = '.', tr = '.';
         char ml = '.', mr = '.';
         char bl = '.', bm = '.', br = '.';
@@ -72,7 +72,7 @@ struct EngineSchematic {
         }
     }
 
-    void loadEngineSchematic(const std::vector<std::vector<char>> &engineSchematic) {
+    void loadEngineSchematic(const std::vector<std::string> &engineSchematic) {
         std::string currentPart = "";
         char currentSymbol = '.';
         int currentId = 0;
@@ -107,35 +107,29 @@ struct EngineSchematic {
         }
     }
 
-    long long getGearRatio() const {
-        int ratio = 0;
-        for (const auto&[id, parts] : gears) {
-            if (parts.size() == 2) {
-                ratio += parts[0] * parts[1];
-            }
-        }
-        return ratio;
+    int64_t getGearRatio() const {
+        auto ratioView = gears | std::views::values | std::views::transform([](const auto &parts) {
+            return parts.size() == 2 ? parts[0] * parts[1] : 0;
+        });
+        return std::accumulate(ratioView.begin(), ratioView.end(), (int64_t)0);
     }
 
-    int getPartsSum() const {
-        int sum = 0;
-        for (const auto &[symbol, parts] : engineMap) {
-            sum += std::accumulate(parts.begin(), parts.end(), 0);
-        }
-
-        return sum;
+    int32_t getPartsSum() const {
+        auto partsSumView = engineMap | std::views::values | std::views::transform([](const auto &parts) {
+            return std::accumulate(parts.begin(), parts.end(), 0);
+        });
+        return std::accumulate(partsSumView.begin(), partsSumView.end(), 0);
     }
 
     void dumpEngineParts() const {
         std::cout << "Parts sum: " << getPartsSum() << std::endl;
-
-        std::cout << "Gear ration: " << getGearRatio() << std::endl;
+        std::cout << "Gear ratio: " << getGearRatio() << std::endl;
     }
 };
 
 class Engine {
     public:
-        Engine(const std::vector<std::vector<char>> &engineSchematic) {
+        Engine(const std::vector<std::string> &engineSchematic) {
             map.loadEngineSchematic(engineSchematic);
         }
 
@@ -146,7 +140,7 @@ class Engine {
     private:
         EngineSchematic map;
 
-        void loadEngine(const std::vector<std::vector<char>> &engineSchematic) {
+        void loadEngine(const std::vector<std::string> &engineSchematic) {
             map.loadEngineSchematic(engineSchematic);
         }
 };
@@ -158,13 +152,12 @@ int32_t main() {
 
     if (!input) return EXIT_FAILURE;
 
-    std::vector<std::vector<char>> engineSchematic;
+    std::vector<std::string> engineSchematic;
 
     while (!input.eof()) {
         std::string inputRow;
         std::getline(input, inputRow);
-        std::vector<char> vec(inputRow.begin(), inputRow.end());
-        engineSchematic.push_back(vec);
+        engineSchematic.push_back(inputRow);
     }
 
     Engine engine(engineSchematic);

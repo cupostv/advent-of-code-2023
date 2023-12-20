@@ -82,7 +82,7 @@ struct ModuleList {
         std::unordered_map<std::string, int64_t> counts;
         for (auto &[in, module] : list) {
             auto outs = module->outputs;
-            if (std::ranges::find(outs, input) != outs.end()) {
+            if (helper::find(outs, input)) {
                 counts[in] = 0;
             }
         }
@@ -132,7 +132,7 @@ int32_t main() {
                 std::getline(ss, out, ',');
                 m->outputs.push_back(out);
             }
-            if (std::ranges::find(m->outputs, "rx") != m->outputs.end()) {
+            if (helper::find(m->outputs, "rx")) {
                 rxInput = left;
             }
             modules.list[left] = m;
