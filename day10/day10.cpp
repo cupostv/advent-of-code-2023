@@ -2,8 +2,10 @@
 
 #define INPUT "input.txt"
 
+using Point = std::pair<int64_t, int64_t>;
+
 std::vector<std::string> pipeMap;
-std::pair<size_t, size_t> startingPosition;
+Point startingPosition;
 
 #define TB '|'
 #define LR '-'
@@ -15,100 +17,155 @@ std::pair<size_t, size_t> startingPosition;
 #define START 'S'
 #define INVALID {-1, -1}
 
-enum class Direction {
-    LEFT,
-    RIGHT,
-    TOP,
-    BOTTOM,
-};
-
-// | is a vertical pipe connecting north and south.
-// - is a horizontal pipe connecting east and west.
-// L is a 90-degree bend connecting north and east.
-// J is a 90-degree bend connecting north and west.
-// 7 is a 90-degree bend connecting south and west.
-// F is a 90-degree bend connecting south and east.
-// . is ground; there is no pipe in this tile.
-// S is the starting position of the animal; there is a pipe on this tile, but your sketch doesn't show what shape the pipe has.
-
-/*
-    Try few combinations from every point:
-    T
-   LXR     RB RL TB TL
-    B
-
-*/
-
-Direction getExit(Direction from, char pipe) {
-    if (from == Direction::RIGHT && pipe == LR) return Direction::RIGHT;
-    if (from == Direction::RIGHT && pipe == TL) return Direction::TOP;
-    if (from == Direction::RIGHT && pipe == BL) return Direction::BOTTOM;
-
-    if (from == Direction::LEFT && pipe == LR) return Direction::LEFT;
-    if (from == Direction::LEFT && pipe == TR) return Direction::TOP;
-    if (from == Direction::LEFT && pipe == BR) return Direction::BOTTOM;
-
-    if (from == Direction::TOP && pipe == TB) return Direction::TOP;
-    if (from == Direction::TOP && pipe == BR) return Direction::RIGHT;
-    if (from == Direction::TOP && pipe == BL) return Direction::LEFT;
-
-    if (from == Direction::BOTTOM && pipe == TB) return Direction::BOTTOM;
-    if (from == Direction::BOTTOM && pipe == TR) return Direction::RIGHT;
-    if (from == Direction::BOTTOM && pipe == TL) return Direction::LEFT;
-
-    return Direction::RIGHT;
-}
-
-bool canMove(Direction direction, char to) {
-    // Coming in a direction `to` pipe
-    // Can I move?
-    if (direction == Direction::RIGHT && (to == LR || to == TL || to == BL)) return true;
-    if (direction == Direction::LEFT && (to == LR || to == TR || to == BR)) return true;
-    if (direction == Direction::TOP && (to == TB || to == BR || to == BL)) return true;
-    if (direction == Direction::BOTTOM && (to == TB || to == TL || to == TR)) return true;
-    return false;
-}
-
-bool isWall(std::pair<size_t, size_t> position) {
+bool isWall(Point position) {
     auto[row, col] = position;
     if (row < 0 || row >= pipeMap.size()) return true;
     if (col < 0 || col >= pipeMap[0].size()) return true;
     return false;
 }
 
-std::vector<std::pair<size_t, size_t>> loop;
+enum Direction {
+    LEFT = 0,
+    RIGHT,
+    TOP,
+    BOTTOM,
+};
 
-int64_t floodFill(Direction direction, std::pair<size_t, size_t> position, int64_t step = 1) {
-    // From every position we can test  4 directions:
-    // R,B R,L T,B T,L
-    // We need to find which path ends in starting position
+struct Pipe {
+    Point position;
+    std::array<Point, 4> connections; // in and out
 
-    if (isWall(position)) return -1;
-    char type = pipeMap[position.first][position.second];
-    if (type == GROUND) return -1;
-    if (position != startingPosition && !canMove(direction, type)) return -1;
-    if (position == startingPosition) return step;//loop length?
-
-    loop.push_back(position);
-
-    int64_t result = -1;
-
-    auto exit = getExit(direction, type);
-
-    if (exit == Direction::RIGHT) {
-        result = floodFill(Direction::RIGHT, {position.first, position.second + 1}, step + 1);
+    Pipe(const Point position) : position(position) {
+        char pipe = '.';
+        if (!isWall(position))
+            pipe = pipeMap[position.first][position.second];
+        connections[Direction::LEFT] = INVALID;
+        connections[Direction::RIGHT] = INVALID;
+        connections[Direction::TOP] = INVALID;
+        connections[Direction::BOTTOM] = INVALID;
+        if (pipe == LR) {
+            connections[Direction::LEFT] = {position.first, position.second - 1};
+            connections[Direction::RIGHT] = {position.first, position.second + 1};
+        }
+        else if (pipe == TB) {
+            connections[Direction::TOP] = {position.first - 1, position.second};
+            connections[Direction::BOTTOM] = {position.first + 1, position.second};
+        }
+        else if (pipe == TR) {
+            connections[Direction::TOP] = {position.first - 1, position.second};
+            connections[Direction::RIGHT] = {position.first, position.second + 1};
+        }
+        else if (pipe == TL) {
+            connections[Direction::TOP] = {position.first - 1, position.second};
+            connections[Direction::LEFT] = {position.first, position.second - 1};
+        }
+        else if (pipe == BR) {
+            connections[Direction::BOTTOM] = {position.first + 1, position.second};
+            connections[Direction::RIGHT] = {position.first, position.second + 1};
+        }
+        else if (pipe == BL) {
+            connections[Direction::BOTTOM] = {position.first + 1, position.second};
+            connections[Direction::LEFT] = {position.first, position.second - 1};
+        }
+        else if(pipe == START) {
+            connections[Direction::LEFT] = {position.first, position.second - 1};
+            connections[Direction::RIGHT] = {position.first, position.second + 1};
+            connections[Direction::TOP] = {position.first - 1, position.second};
+            connections[Direction::BOTTOM] = {position.first + 1, position.second};
+        }
     }
-    if (exit == Direction::LEFT) {
-        result = floodFill(Direction::LEFT, {position.first, position.second - 1}, step + 1);
-    }
-    if (exit == Direction::TOP) {
-        result = floodFill(Direction::TOP, {position.first - 1, position.second}, step + 1);
-    }
-    if (exit == Direction::BOTTOM) {
-        result = floodFill(Direction::BOTTOM, {position.first + 1, position.second}, step + 1);
+
+    bool isValid() const {
+        return !isWall(position);
     }
 
-    return result;
+    Pipe get(Direction dir) const {
+        return Pipe(connections[dir]);
+    }
+    Pipe getTop() const {
+        return get(Direction::TOP);
+    }
+    Pipe getBottom() const {
+        return get(Direction::BOTTOM);
+    }
+    Pipe getLeft() const {
+        return get(Direction::LEFT);
+    }
+    Pipe getRight() const {
+        return get(Direction::RIGHT);
+    }
+
+    // Get exit position for given entry position
+    Point getExit(Point entry) const {
+        // Filter invalid and entry
+        Point result = INVALID;
+        int32_t count = 0;
+        for (auto connection : connections) {
+            if (connection != (Point)INVALID && connection != entry) {
+                result = connection;
+                count++;
+            }
+        }
+        if (count > 1) {
+            return INVALID;
+        }
+
+        return result;
+    }
+};
+
+std::pair<std::vector<Point>, bool> getPath(Pipe pipe) {
+    std::vector<Point> result = {startingPosition};
+
+    auto entryPos = startingPosition;
+    auto exitPos = pipe.getExit(entryPos);
+    entryPos = pipe.position;
+    result.push_back(exitPos);
+
+    while(true) {
+        if (exitPos == startingPosition) break;
+        if (exitPos == (Point)INVALID) break;
+
+        Pipe exitPipe(exitPos);
+        auto temp = exitPipe.getExit(entryPos);
+        entryPos = exitPos;
+        exitPos = temp;
+        result.push_back(exitPos);
+    }
+
+    return {result, exitPos == startingPosition};
+}
+
+std::vector<Point> getValidPath() {
+    Pipe start(startingPosition);
+
+    auto [lPath, lValid] = getPath(start.getLeft());
+    auto [rPath, rValid] = getPath(start.getRight());
+    auto [tPath, tValid] = getPath(start.getTop());
+    auto [bPath, bValid] = getPath(start.getBottom());
+
+    if (tValid && bValid) pipeMap[startingPosition.first][startingPosition.second] = TB;
+    if (tValid && lValid) pipeMap[startingPosition.first][startingPosition.second] = TL;
+    if (tValid && rValid) pipeMap[startingPosition.first][startingPosition.second] = TR;
+    if (lValid && rValid) pipeMap[startingPosition.first][startingPosition.second] = LR;
+    if (bValid && lValid) pipeMap[startingPosition.first][startingPosition.second] = BL;
+    if (bValid && rValid) pipeMap[startingPosition.first][startingPosition.second] = BR;
+
+    if (lValid) return lPath;
+    if (rValid) return rPath;
+    if (tValid) return tPath;
+    if (bValid) return bPath;
+
+    return {};
+}
+
+int32_t calculateAreaInside(const std::vector<Point> &path) {
+    // Construct polygon
+    helper::GridPolygon polygon;
+
+    polygon.points = path;
+
+    return polygon.areaInside();
 }
 
 int32_t main() {
@@ -117,6 +174,8 @@ int32_t main() {
     input.open(INPUT);
 
     if (!input) return EXIT_FAILURE;
+
+    std::vector<std::vector<Pipe>> pipes;
 
     while (!input.eof()) {
 
@@ -128,27 +187,15 @@ int32_t main() {
 
         if (inputRow.find(START) != std::string::npos) {
             startingPosition = {pipeMap.size(), inputRow.find(START)};
-            std::cout << startingPosition.first << ", " << startingPosition.second << std::endl;
         }
         pipeMap.push_back(inputRow);
     }
 
-    loop = {startingPosition};
-    floodFill(Direction::RIGHT, {startingPosition.first, startingPosition.second + 1});
-    if (loop.size() == 1) {
-        loop = {startingPosition};
-        floodFill(Direction::LEFT, {startingPosition.first, startingPosition.second - 1});
-        if (loop.size() == 1) {
-            loop = {startingPosition};
-            floodFill(Direction::TOP, {startingPosition.first - 1, startingPosition.second});
-            if (loop.size() == 1) {
-                loop = {startingPosition};
-                floodFill(Direction::BOTTOM, {startingPosition.first + 1, startingPosition.second});
-            }
-        }
-    }
+    std::vector<Point> path = getValidPath();
 
-    std::cout << loop.size() / 2 << std::endl;
+    std::cout << path.size() / 2 << std::endl;
+
+    std::cout << calculateAreaInside(path) << std::endl;
 
     return EXIT_SUCCESS;
 }
