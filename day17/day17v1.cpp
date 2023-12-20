@@ -1,12 +1,4 @@
-#include <algorithm>
-#include <cmath>
-#include <fstream>
-#include <iostream>
-#include <numeric>
-#include <queue>
-#include <string>
-#include <unordered_set>
-#include <vector>
+#include "../helpers/includes.hpp"
 
 struct Point {
   int row;

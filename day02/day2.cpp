@@ -1,10 +1,4 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <string_view>
-#include <vector>
-#include <array>
-#include <sstream>
+#include "../helpers/includes.hpp"
 
 #define GAMES "games.txt"
 

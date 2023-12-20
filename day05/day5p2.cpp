@@ -1,16 +1,4 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <string_view>
-#include <vector>
-#include <array>
-#include <sstream>
-#include <unordered_map>
-#include <cmath>
-#include <set>
-#include <numeric>
-#include <limits>
-#include <list>
+#include "../helpers/includes.hpp"
 
 #define INPUT "input.txt"
 
