@@ -18,6 +18,19 @@ struct Point {
         return std::abs(x - other.x) + std::abs(y - other.y);
     }
 
+    Point getLeft() const {
+        return *this + LEFT;
+    }
+    Point getRight() const {
+        return *this + RIGHT;
+    }
+    Point getUp() const {
+        return *this + UP;
+    }
+    Point getDown() const {
+        return *this + DOWN;
+    }
+
     friend std::ostream& operator << (std::ostream& os, const Point& p) {
         os << "(" << p.x << "," << p.y << ")";
         return os;

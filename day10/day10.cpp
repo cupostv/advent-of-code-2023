@@ -42,34 +42,34 @@ struct Pipe {
         connections[Direction::TOP] = INVALID;
         connections[Direction::BOTTOM] = INVALID;
         if (pipe == LR) {
-            connections[Direction::LEFT] = position + helper::Point::LEFT;
-            connections[Direction::RIGHT] = position + helper::Point::RIGHT;
+            connections[Direction::LEFT] = position.getLeft();
+            connections[Direction::RIGHT] = position.getRight();
         }
         else if (pipe == TB) {
-            connections[Direction::TOP] = position + helper::Point::UP;
-            connections[Direction::BOTTOM] = position + helper::Point::DOWN;
+            connections[Direction::TOP] = position.getUp();
+            connections[Direction::BOTTOM] = position.getDown();
         }
         else if (pipe == TR) {
-            connections[Direction::TOP] = position + helper::Point::UP;
-            connections[Direction::RIGHT] = position + helper::Point::RIGHT;
+            connections[Direction::TOP] = position.getUp();
+            connections[Direction::RIGHT] = position.getRight();
         }
         else if (pipe == TL) {
-            connections[Direction::TOP] = position + helper::Point::UP;
-            connections[Direction::LEFT] = position + helper::Point::LEFT;
+            connections[Direction::TOP] = position.getUp();
+            connections[Direction::LEFT] = position.getLeft();
         }
         else if (pipe == BR) {
-            connections[Direction::BOTTOM] = position + helper::Point::DOWN;
-            connections[Direction::RIGHT] = position + helper::Point::RIGHT;
+            connections[Direction::BOTTOM] = position.getDown();
+            connections[Direction::RIGHT] = position.getRight();
         }
         else if (pipe == BL) {
-            connections[Direction::BOTTOM] = position + helper::Point::DOWN;
-            connections[Direction::LEFT] = position + helper::Point::LEFT;
+            connections[Direction::BOTTOM] = position.getDown();
+            connections[Direction::LEFT] = position.getLeft();
         }
         else if(pipe == START) {
-            connections[Direction::LEFT] = position + helper::Point::LEFT;
-            connections[Direction::RIGHT] = position + helper::Point::RIGHT;
-            connections[Direction::TOP] = position + helper::Point::UP;
-            connections[Direction::BOTTOM] = position + helper::Point::DOWN;
+            connections[Direction::LEFT] = position.getLeft();
+            connections[Direction::RIGHT] = position.getRight();
+            connections[Direction::TOP] = position.getUp();
+            connections[Direction::BOTTOM] = position.getDown();
         }
     }
 
