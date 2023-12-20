@@ -2,10 +2,6 @@
 
 #define INPUT "input.txt"
 
-bool isAsciiDigit(char digit) {
-    return digit >= '0' && digit <= '9';
-}
-
 struct Range {
     int64_t start;
     int64_t length;

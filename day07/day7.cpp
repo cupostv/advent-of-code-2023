@@ -2,14 +2,6 @@
 
 #define INPUT "input.txt"
 
-bool isAsciiDigit(char digit) {
-    return digit >= '0' && digit <= '9';
-}
-
-void removeSpaces(std::string &str) {
-    str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
-}
-
 std::unordered_map<char, int32_t> cardStrength = {
     {'A', 13},
     {'K', 12},

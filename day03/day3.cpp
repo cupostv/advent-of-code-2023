@@ -2,10 +2,6 @@
 
 #define INPUT "input.txt"
 
-bool isAsciiDigit(char digit) {
-    return digit >= '0' && digit <= '9';
-}
-
 struct EngineSchematic {
     static const int NOT_NUMBER = -1;
 
@@ -36,30 +32,30 @@ struct EngineSchematic {
         if (row + 1 <= engineSchematic.size() - 1 && col + 1 <= engineSchematic[row + 1].size() - 1)
             br = engineSchematic[row + 1][col + 1];
 
-        if (tl != '.' && !isAsciiDigit(tl)) {
+        if (tl != '.' && !helper::string::isAsciiDigit(tl)) {
             return std::make_pair(std::vector{row - 1, col - 1}, tl);
         }
-        if (tm != '.' && !isAsciiDigit(tm)) {
+        if (tm != '.' && !helper::string::isAsciiDigit(tm)) {
             return std::make_pair(std::vector{row - 1, col}, tm);
         }
-        if (tr != '.' && !isAsciiDigit(tr)) {
+        if (tr != '.' && !helper::string::isAsciiDigit(tr)) {
             return std::make_pair(std::vector{row - 1, col + 1}, tr);
         }
 
-        if (ml != '.' && !isAsciiDigit(ml)) {
+        if (ml != '.' && !helper::string::isAsciiDigit(ml)) {
             return std::make_pair(std::vector{row, col -1 }, ml);
         }
-        if (mr != '.' && !isAsciiDigit(mr)) {
+        if (mr != '.' && !helper::string::isAsciiDigit(mr)) {
             return std::make_pair(std::vector{row, col + 1}, mr);
         }
 
-        if (bl != '.' && !isAsciiDigit(bl)) {
+        if (bl != '.' && !helper::string::isAsciiDigit(bl)) {
             return std::make_pair(std::vector{row + 1, col - 1}, bl);
         }
-        if (bm != '.' && !isAsciiDigit(bm)) {
+        if (bm != '.' && !helper::string::isAsciiDigit(bm)) {
             return std::make_pair(std::vector{row + 1, col}, bm);
         }
-        if (br != '.' && !isAsciiDigit(br)) {
+        if (br != '.' && !helper::string::isAsciiDigit(br)) {
             return std::make_pair(std::vector{row + 1, col + 1}, br);
         }
 
@@ -83,7 +79,7 @@ struct EngineSchematic {
 
         for (int32_t row = 0; row < engineSchematic.size(); row++) {
             for (int32_t col = 0; col < engineSchematic[row].size(); col++) {
-                if (isAsciiDigit(engineSchematic[row][col])) {
+                if (helper::string::isAsciiDigit(engineSchematic[row][col])) {
                         // Find surrounding symbol not .
                         currentPart += engineSchematic[row][col];
 

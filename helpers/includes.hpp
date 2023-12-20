@@ -28,3 +28,6 @@
 
 #include <climits>
 #include <cassert>
+
+// Ours
+#include "string_helper.hpp"

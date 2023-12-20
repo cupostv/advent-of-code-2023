@@ -2,14 +2,6 @@
 
 #define INPUT "input.txt"
 
-bool isAsciiDigit(char digit) {
-    return std::isdigit(static_cast<unsigned char>(digit));
-}
-
-void removeSpaces(std::string &str) {
-    str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
-}
-
 template <typename T>
 void printVector(const std::vector<T>& c)
 {

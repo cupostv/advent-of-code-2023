@@ -2,14 +2,6 @@
 
 #define INPUT "input.txt"
 
-bool isAsciiDigit(char digit) {
-    return digit >= '0' && digit <= '9';
-}
-
-void removeSpaces(std::string &str) {
-    str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
-}
-
 struct Map {
     static const char LEFT = 'L';
     static const char RIGHT = 'R';
@@ -66,14 +58,14 @@ int32_t main() {
 
         while (!input.eof()) {
             std::getline(input, inputRow, '=');
-            removeSpaces(inputRow);
+            helper::string::removeSpaces(inputRow);
             std::string key = inputRow;
             std::string left;
             std::string right;
             std::getline(input, inputRow, '(');//dummy
             std::getline(input, left, ',');//dummy
             std::getline(input, right, ')');
-            removeSpaces(right);
+            helper::string::removeSpaces(right);
             std::getline(input, inputRow);
             m.map[key] = {left, right};
         }

@@ -2,10 +2,6 @@
 
 #define INPUT "input.txt"
 
-void removeSpaces(std::string &str) {
-    str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
-}
-
 struct Module {
     std::vector<std::string> outputs;
     virtual std::pair<bool, bool> process(const std::string &inputName, bool inputValue) = 0;
@@ -117,7 +113,7 @@ int32_t main() {
 
         std::string left = inputRow.substr(0, inputRow.find(delimiter));
         std::string right = inputRow.substr(inputRow.find(delimiter) + delimiter.size(), inputRow.size());
-        removeSpaces(right);
+        helper::string::removeSpaces(right);
         std::stringstream ss(right);
         std::string out;
         if (left == "broadcaster") {

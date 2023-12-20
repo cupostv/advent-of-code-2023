@@ -2,10 +2,6 @@
 
 #define INPUT "input.txt"
 
-bool isAsciiDigit(char digit) {
-    return digit >= '0' && digit <= '9';
-}
-
 struct Map {
     int64_t source;
     int64_t destination;
