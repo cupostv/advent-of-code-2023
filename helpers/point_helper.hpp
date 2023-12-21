@@ -4,8 +4,8 @@ namespace helper {
 
 struct Point {
 
-    int64_t x;
-    int64_t y;
+    int64_t x = 0;
+    int64_t y = 0;
 
     auto operator<=>(const Point&) const = default;
 

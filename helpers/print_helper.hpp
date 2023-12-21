@@ -51,3 +51,15 @@ std::ostream& operator << (std::ostream& os, const std::map<K, V>& map) {
     os << " ]";
     return os;
 }
+
+namespace helper {
+
+
+template < class T >
+void dumpRow(const std::vector<T>& vec) {
+    for (auto &v : vec) {
+        std::cout << v << std::endl;
+    }
+}
+
+}
