@@ -18,6 +18,10 @@ struct Point {
         return std::abs(x - other.x) + std::abs(y - other.y);
     }
 
+    bool isValid(int64_t xMin, int64_t yMin, int64_t xMax, int64_t yMax) const {
+        return x >= xMin && x <= xMax && y >= yMin && y <= yMax;
+    }
+
     Point getLeft() const {
         return *this + LEFT;
     }

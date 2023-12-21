@@ -5,24 +5,22 @@
 struct Map {
     static const char BLOCKED = '#';
 
-    using Visited = std::unordered_map<helper::Point, bool, helper::PointHash>;
+    using Path = std::unordered_map<helper::Point, std::set<std::pair<helper::Point, int32_t>>, helper::PointHash>;
 
     std::vector<std::string> grid;
 
-    helper::Point start = {0, 1};
+    helper::Point start;
+    helper::Point end;
 
-    bool isValid(const helper::Point p) const {
-        if (p.x >= 0 && p.x < grid.size() && p.y >= 0 && p.y < grid[0].size()) return true;
-        return false;
+    bool isValid(const helper::Point &p) const {
+        return p.isValid(0, 0, grid.size() - 1, grid[0].size() - 1);
     }
 
-    bool canFreelyMove(const helper::Point p) const {
-        if (!isValid(p)) return false;
-        if (grid[p.x][p.y] != BLOCKED) return true;
-        return false;
+    bool canFreelyMove(const helper::Point &p) const {
+        return isValid(p) && grid[p.x][p.y] != BLOCKED;
     }
 
-    std::vector<helper::Point> getNext(const helper::Point prev, helper::Point current) const {
+    std::vector<helper::Point> getNext(const helper::Point &prev, const helper::Point &current) const {
         auto r = current.getRight();
         auto l = current.getLeft();
         auto d = current.getDown();
@@ -30,35 +28,66 @@ struct Map {
 
         std::vector<helper::Point> newPath;
         if (r != prev && canFreelyMove(r))
-            newPath.push_back(r);
+            newPath.push_back(std::move(r));
         if (l != prev && canFreelyMove(l))
-            newPath.push_back(l);
+            newPath.push_back(std::move(l));
         if (d != prev && canFreelyMove(d))
-            newPath.push_back(d);
+            newPath.push_back(std::move(d));
         if (u != prev && canFreelyMove(u))
-            newPath.push_back(u);
-        // End
+            newPath.push_back(std::move(u));
+
         return newPath;
     }
 
-    int64_t hike() {
+    Path createPaths() const {
+        Path path;
+
+        std::function<void(helper::Point, helper::Point, helper::Point, int64_t)> f =
+            [&](helper::Point start, helper::Point prev, helper::Point current, int64_t steps) {
+                if (path.contains(current)) {
+                    path[start].insert({current, steps});
+                    return;
+                }
+                auto next = getNext(prev, current);
+
+                if (next.size() == 0 || next.size() > 1) {
+                    // crossing
+                    path[start].insert({current, steps});
+                    path[current].insert({start, steps});
+                    steps = 0;
+                    start = current;
+                }
+
+                for (auto &point : next) {
+                    f(start, current, point, steps + 1);
+                }
+        };
+
+        f(start, start.getLeft(), start, 0);
+
+        return path;
+    }
+
+    int64_t hike() const {
+        using Visited = std::unordered_map<helper::Point, bool, helper::PointHash>;
+
+        auto paths = std::move(createPaths());
 
         Visited visited;
 
-        std::function<int64_t(helper::Point, helper::Point, int64_t)> f =
-            [&](helper::Point prev, helper::Point current, int64_t steps) {
+        std::function<int64_t(const helper::Point&, int64_t)> f =
+            [&](const helper::Point &current, int64_t steps) {
                 if (visited[current]) return (int64_t)0;
-                auto next = getNext(prev, current);
-                if (next.size() == 0) return steps;
+                if (current == end) return steps;
 
                 visited[current] = true;
 
                 int64_t max = steps;
 
                 bool allWrongWay = true;
-                for (auto point : next) {
+                for (auto [point, len] : paths[current]) {
                     // pass same visited set
-                    auto numSteps = f(current, point, steps + 1);
+                    auto numSteps = f(std::move(point), steps + len);
                     max = std::max(max, numSteps);
                     if (numSteps != 0) allWrongWay = false;
                 }
@@ -68,7 +97,7 @@ struct Map {
                 return allWrongWay ? 0 : max;
             };
 
-        return f(start.getLeft(), start, 0);
+        return f(start, 0);
     }
 
 };
@@ -91,6 +120,11 @@ int32_t main() {
 
         map.grid.push_back(inputRow);
     }
+
+    // find start in first row
+    // find end in last row
+    map.start = {0, (int64_t)map.grid[0].find('.')};
+    map.end = {(int64_t)map.grid.size() - 1, (int64_t)map.grid[map.grid.size() - 1].find('.')};
 
     std::cout << map.hike() << std::endl;
 

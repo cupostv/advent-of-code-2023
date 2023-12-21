@@ -7,9 +7,24 @@
 #include <list>
 #include <queue>
 
+template < class K, class V >
+std::ostream& operator << (std::ostream& os, const std::pair<K, V>& pair) {
+    os << "pair{" << pair.first << "," << pair.second << "}";
+    return os;
+}
+
 template < class T >
 std::ostream& operator << (std::ostream& os, const std::vector<T>& vec) {
     os << "vec[";
+    for (auto &v : vec)
+        os << " " << v;
+    os << " ]";
+    return os;
+}
+
+template < class T >
+std::ostream& operator << (std::ostream& os, const std::set<T>& vec) {
+    os << "set[";
     for (auto &v : vec)
         os << " " << v;
     os << " ]";
