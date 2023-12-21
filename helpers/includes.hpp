@@ -15,6 +15,7 @@
 #include <list>
 #include <set>
 #include <queue>
+#include <deque>
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
