@@ -28,10 +28,6 @@ struct BoatRace {
         auto x2 = (-time - sqrtD) / 2;
         return x1 - x2;
     }
-
-    void dump() {
-        std::cout << "Time: " << time << " Record: " << record << std::endl;
-    }
 };
 
 int32_t main() {

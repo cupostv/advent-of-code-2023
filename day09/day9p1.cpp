@@ -17,35 +17,15 @@ struct Sequence {
     }
 
     int64_t extrapolateForward() const {
-        auto diff = std::move(getDifference());
+        auto diff = getDifference();
         std::vector<int64_t> lastValues = {values.back()};
         while(!diff.allZeros()) {
             lastValues.push_back(diff.values.back());
-            diff = std::move(diff.getDifference());
+            diff = diff.getDifference();
         }
         // X - lastValue = prev
         // X = prev + lastValue
         return std::accumulate(lastValues.crbegin(), lastValues.crend(), 0);
-    }
-
-    int64_t extrapolateBackward() const {
-        auto diff = std::move(getDifference());
-        std::vector<int64_t> firstValues = {values.front()};
-        while(!diff.allZeros()) {
-            firstValues.push_back(diff.values.front());
-            diff = std::move(diff.getDifference());
-        }
-        // lastValue - X = prev
-        // X = lastValue - prev
-
-        return std::accumulate(firstValues.crbegin(), firstValues.crend(), 0, [](auto prev, auto last) { return last - prev; });
-    }
-
-    void dump() const {
-        for (auto val : values) {
-            std::cout << val << " ";
-        }
-        std::cout << std::endl;
     }
 };
 
@@ -56,18 +36,6 @@ struct Measurement {
         return std::accumulate(sequences.begin(), sequences.end(), 0, [](int a, const Sequence &b) {
             return a + b.extrapolateForward();
         });
-    }
-
-    int64_t getExtrapolateBackwardSum() const {
-        return std::accumulate(sequences.begin(), sequences.end(), 0, [](int a, const Sequence &b) {
-            return a + b.extrapolateBackward();
-        });
-    }
-
-    void dump() const {
-        for (auto seq : sequences) {
-            seq.dump();
-        }
     }
 };
 
@@ -97,7 +65,6 @@ int32_t main() {
     }
 
     std::cout << m.getExtrapolateForwardSum() << std::endl;
-    std::cout << m.getExtrapolateBackwardSum() << std::endl;
 
     return EXIT_SUCCESS;
 }

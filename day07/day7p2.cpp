@@ -2,7 +2,7 @@
 
 #define INPUT "input.txt"
 
-std::string cardStrength("J23456789TQKA");
+const std::string cardStrength("J23456789TQKA");
 
 struct Card {
     char symbol;

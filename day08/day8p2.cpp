@@ -70,8 +70,6 @@ int32_t main() {
             m.map[key] = {left, right};
         }
 
-        // std::stringstream inputStream(inputRow);
-
         std::cout << m.stepsFromAllAtoAllZ() << std::endl;
     }
 

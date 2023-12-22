@@ -37,40 +37,36 @@ struct Pipe {
         char pipe = '.';
         if (!isWall(position))
             pipe = pipeMap[position.x][position.y];
-        connections[Direction::LEFT] = INVALID;
-        connections[Direction::RIGHT] = INVALID;
-        connections[Direction::TOP] = INVALID;
-        connections[Direction::BOTTOM] = INVALID;
+        connections[Direction::LEFT] = position.getLeft();
+        connections[Direction::RIGHT] = position.getRight();
+        connections[Direction::TOP] = position.getUp();
+        connections[Direction::BOTTOM] = position.getDown();
+
         if (pipe == LR) {
-            connections[Direction::LEFT] = position.getLeft();
-            connections[Direction::RIGHT] = position.getRight();
+            connections[Direction::TOP] = INVALID;
+            connections[Direction::BOTTOM] = INVALID;
         }
         else if (pipe == TB) {
-            connections[Direction::TOP] = position.getUp();
-            connections[Direction::BOTTOM] = position.getDown();
+            connections[Direction::LEFT] = INVALID;
+            connections[Direction::RIGHT] = INVALID;
         }
         else if (pipe == TR) {
-            connections[Direction::TOP] = position.getUp();
-            connections[Direction::RIGHT] = position.getRight();
+            connections[Direction::LEFT] = INVALID;
+            connections[Direction::BOTTOM] = INVALID;
         }
         else if (pipe == TL) {
-            connections[Direction::TOP] = position.getUp();
-            connections[Direction::LEFT] = position.getLeft();
+            connections[Direction::BOTTOM] = INVALID;
+            connections[Direction::RIGHT] = INVALID;
         }
         else if (pipe == BR) {
-            connections[Direction::BOTTOM] = position.getDown();
-            connections[Direction::RIGHT] = position.getRight();
+            connections[Direction::TOP] = INVALID;
+            connections[Direction::LEFT] = INVALID;
         }
         else if (pipe == BL) {
-            connections[Direction::BOTTOM] = position.getDown();
-            connections[Direction::LEFT] = position.getLeft();
+            connections[Direction::TOP] = INVALID;
+            connections[Direction::RIGHT] = INVALID;
         }
-        else if(pipe == START) {
-            connections[Direction::LEFT] = position.getLeft();
-            connections[Direction::RIGHT] = position.getRight();
-            connections[Direction::TOP] = position.getUp();
-            connections[Direction::BOTTOM] = position.getDown();
-        }
+
     }
 
     bool isValid() const {
@@ -137,22 +133,10 @@ std::pair<std::vector<helper::Point>, bool> getPath(Pipe pipe) {
 std::vector<helper::Point> getValidPath() {
     Pipe start(startingPosition);
 
-    auto [lPath, lValid] = getPath(start.getLeft());
-    auto [rPath, rValid] = getPath(start.getRight());
-    auto [tPath, tValid] = getPath(start.getTop());
-    auto [bPath, bValid] = getPath(start.getBottom());
-
-    if (tValid && bValid) pipeMap[startingPosition.x][startingPosition.y] = TB;
-    if (tValid && lValid) pipeMap[startingPosition.x][startingPosition.y] = TL;
-    if (tValid && rValid) pipeMap[startingPosition.x][startingPosition.y] = TR;
-    if (lValid && rValid) pipeMap[startingPosition.x][startingPosition.y] = LR;
-    if (bValid && lValid) pipeMap[startingPosition.x][startingPosition.y] = BL;
-    if (bValid && rValid) pipeMap[startingPosition.x][startingPosition.y] = BR;
-
-    if (lValid) return lPath;
-    if (rValid) return rPath;
-    if (tValid) return tPath;
-    if (bValid) return bPath;
+    for (auto pipe : {start.getLeft(), start.getRight(), start.getTop(), start.getBottom()}) {
+        auto [path, valid] = getPath(pipe);
+        if (valid) return path;
+    }
 
     return {};
 }
@@ -188,8 +172,6 @@ int32_t main() {
     }
 
     std::vector<helper::Point> path = getValidPath();
-
-    std::cout << path.size() / 2 << std::endl;
 
     std::cout << calculateAreaInside(path) << std::endl;
 
