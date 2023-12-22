@@ -84,7 +84,6 @@ struct Map {
                         visited[current] = false;
                         return steps + len;
                     }
-                    // pass same visited set
                     auto numSteps = f(std::move(point), steps + len);
                     max = std::max(max, numSteps);
                 }

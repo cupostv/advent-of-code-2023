@@ -36,53 +36,48 @@ struct Conjuction : Module {
     std::pair<bool, bool> process(const std::string &inputName, bool inputValue) {
         inputs[inputName] = inputValue;
 
-        bool out = false;
         for (bool in : inputs | std::views::values) {
             if (!in) {
-                out = true;
-                break;
+                return {true, true};
             }
         }
-        return {true, out};
+        return {true, false};
     }
 
     bool getState() const {
-        bool out = false;
         for (bool in : inputs | std::views::values) {
             if (in) {
-                out = true;
-                break;
+                return true;
             }
         }
-        return out;
+        return false;
     }
 };
 
 struct ModuleList {
     std::unordered_map<std::string, std::shared_ptr<Module>> list;
+    std::queue<std::tuple<std::string, std::string, bool>> inputModules;
+
 
     void resetConjuctions() {
-        for (auto &[in, module] : list) {
-            for (auto &out : module->outputs) {
+        for (auto &[in, module] : list)
+            for (auto &out : module->outputs)
                 if (list.contains(out))
                     if (auto conj = dynamic_pointer_cast<Conjuction>(list[out]))
                         conj->reset(in);
-            }
-        }
     }
 
     bool allOff() const {
-        for (auto module : list | std::views::values) {
+        for (auto module : list | std::views::values)
             if (module->getState()) return false;
-        }
+
         return true;
     }
 
     auto getEmptyCounts(const std::string& input) const {
         std::unordered_map<std::string, int64_t> counts;
-        for (auto &[in, module] : list) {
-            auto outs = module->outputs;
-            if (helper::find(outs, input)) {
+        for (const auto &[in, module] : list) {
+            if (helper::find(module->outputs, input)) {
                 counts[in] = 0;
             }
         }
@@ -98,7 +93,6 @@ int32_t main() {
     if (!input) return EXIT_FAILURE;
 
     ModuleList modules;
-    std::queue<std::tuple<std::string, std::string, bool>> inputModules;
 
     std::string delimiter = " -> ";
 
@@ -119,7 +113,7 @@ int32_t main() {
         if (left == "broadcaster") {
             while (!ss.eof()) {
                 std::getline(ss, out, ',');
-                inputModules.push({left, out, false});
+                modules.inputModules.push({left, out, false});
             }
         } else {
             char symbol = left[0];
@@ -142,33 +136,25 @@ int32_t main() {
     modules.resetConjuctions();
     auto counts = modules.getEmptyCounts(rxInput);
 
-    int64_t lowCount = 0;
-    int64_t highCount = 0;
     int64_t count = 0;
 
     do {
-        auto initialInputs = inputModules;
-        lowCount++; // button press
+        auto initialInputs = modules.inputModules;
         count++;
         while(!initialInputs.empty()) {
             auto &[input, output, value] = initialInputs.front();
             initialInputs.pop();
-            if (value) highCount++; else lowCount++;
 
             if (!modules.list.contains(output)) continue;
 
             auto [pass, res] = modules.list[output]->process(input, value);
-            if (pass) {
-                if (res && counts.contains(output) && counts[output] == 0)
-                    counts[output] = count;
-                for (auto &out : modules.list[output]->outputs) {
-                    initialInputs.push({output, out, res});
-                }
-            }
-        }
+            if (!pass) continue;
 
-        if (count == 1000) {
-            std::cout << "Part 1: " << lowCount * highCount << std::endl;
+            if (res && counts.contains(output) && counts[output] == 0)
+                counts[output] = count;
+            for (auto &out : modules.list[output]->outputs) {
+                initialInputs.push({output, out, res});
+            }
         }
 
         if (std::ranges::count(counts | std::views::values, 0) == 0) break;
@@ -178,7 +164,7 @@ int32_t main() {
     for (auto c : counts | std::views::values)
         min = std::lcm(min, c);
 
-    std::cout << "Part 2: " << min << std::endl;
+    std::cout << min << std::endl;
 
     return EXIT_SUCCESS;
 }

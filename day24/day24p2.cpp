@@ -9,7 +9,7 @@
 // x1 + t1 * vx1 = x + t1 * vx
 // x2 + t2 * vx2 = x + t2 * vx
 // If we do the same for y and z
-// We will get 9 equations and we can calculate x, y, z easily
+// We will get 9 equations with 9 unknown and we can calculate x, y and z
 // Except it's too much to do manually
 // I could use Z3 library, but instead I will just calculate result with online equation solvers
 

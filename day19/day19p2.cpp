@@ -89,31 +89,6 @@ struct Rule {
     int64_t rhs = 0;
     std::string dest;
 
-    Command process(const Part &part) {
-        switch(op) {
-            case '>':
-                if (part.ratings.at(lhs) > rhs) {
-                    if (dest == "R") return {Action::REJECT};
-                    if (dest == "A") return {Action::ACCEPT};
-                    return {Action::GOTO, dest};
-                }
-                break;
-            case '<':
-                if (part.ratings.at(lhs) < rhs) {
-                    if (dest == "R") return {Action::REJECT};
-                    if (dest == "A") return {Action::ACCEPT};
-                    return {Action::GOTO, dest};
-                }
-                break;
-            case '|':
-                if (dest == "R") return {Action::REJECT};
-                if (dest == "A") return {Action::ACCEPT};
-                return {Action::GOTO, dest};
-                break;
-        };
-        return {Action::SKIP};
-    }
-
     std::vector<std::pair<RangedPart, Command>> process(const RangedPart &part) {
         Command c;
         if (dest == "R") c = {Action::REJECT};
@@ -171,33 +146,17 @@ struct Rule {
 struct Workflow {
     std::vector<Rule> rules;
 
-    Command doWork(const Part &part) {
-        int32_t ruleNo = 0;
-        Command c = rules[ruleNo++].process(part);
-
-        while(c.action == Action::SKIP) {
-            assert(ruleNo < rules.size());
-            c = rules[ruleNo++].process(part);
-        }
-        return c;
-    }
-
     auto doWork(const RangedPart &part) {
         int32_t ruleNo = 0;
         std::vector<std::pair<RangedPart, Command>> ret;
         std::vector<std::pair<RangedPart, Command>> toProcess = rules[ruleNo++].process(part);
 
         while(!toProcess.empty()) {
-            if (toProcess.size() == 1) {
-                if (toProcess[0].second.action != Action::SKIP) {
-                    ret.push_back(toProcess[0]);
-                    toProcess.erase(toProcess.begin());
-                }
-            } else if (toProcess.size() == 2) {
-                if (toProcess[0].second.action != Action::SKIP) {
-                    ret.push_back(toProcess[0]);
-                    toProcess.erase(toProcess.begin());
-                }
+            if (toProcess[0].second.action != Action::SKIP) {
+                ret.push_back(toProcess[0]);
+                toProcess.erase(toProcess.begin());
+            }
+            if (toProcess.size() == 2) {
                 if (toProcess[1].second.action != Action::SKIP) {
                     ret.push_back(toProcess[1]);
                     toProcess.erase(toProcess.begin() + 1);
@@ -211,25 +170,42 @@ struct Workflow {
         return ret;
     }
 
-    void simplify() {
-        // if destination is same for every rule, just leave rule
+    bool optimizationOneDestination() {
         auto dest = rules[0].dest;
         bool canSimplify = true;
         for (auto rule : rules) {
-            if (rule.dest != dest) {
+            if (rule.dest != dest)
                 canSimplify = false;
-            }
         }
-        if (canSimplify) {
+        if (canSimplify && rules.size() > 1) {
             Rule newRule;
             newRule.dest = dest;
             rules = {newRule};
+            return true;
         }
+        return false;
+    }
+
+    bool optimize() {
+        // if destination is same for every rule, just leave rule
+        return optimizationOneDestination();
     }
 };
 
 std::unordered_map<std::string, Workflow> workflows;
 std::vector<Part> parts;
+
+void optimize() {
+    bool changed = true;
+    while (changed) {
+        changed = false;
+        for (auto &w : workflows | std::views::values) {
+            changed |= w.optimize();
+        }
+
+        // TODO: If workflow has only goto, remove it and change it everywhere only to goto
+    }
+}
 
 int32_t main() {
 
@@ -241,9 +217,6 @@ int32_t main() {
     while (!input.eof()) {
 
         std::string inputRow;
-        // std::getline(input, inputRow);
-
-        // if (inputRow.empty()) continue;
 
         // Parse workflows
         while(true) {
@@ -274,7 +247,7 @@ int32_t main() {
                 }
                 workflow.rules.push_back(rule);
             }
-            workflow.simplify();
+
             workflows[workflowName] = workflow;
         }
 
@@ -305,7 +278,10 @@ int32_t main() {
 
     }
 
+    optimize();
+
     RangedPart part;
+    // Happy ...
     part.ratings['x'] = {1, 4000};
     part.ratings['m'] = {1, 4000};
     part.ratings['a'] = {1, 4000};

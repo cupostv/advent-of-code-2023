@@ -2,34 +2,6 @@
 
 #define INPUT "input.txt"
 
-template <class T>
-inline void hash_combine(std::size_t& seed, const T& v)
-{
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-}
-
-struct pairhash {
-public:
-  template <typename T, typename U>
-  std::size_t operator()(const std::pair<T, U> &x) const
-  {
-    std::size_t seed = 0;
-    hash_combine(seed, x.first);
-    hash_combine(seed, x.second);
-
-    return seed;
-  }
-};
-
-using Direction = std::pair<int64_t, int64_t>;
-using Position = std::pair<int64_t, int64_t>;
-
-static const Direction RIGHT = {0, 1};
-static const Direction LEFT = {0, -1};
-static const Direction UP = {-1, 0};
-static const Direction DOWN = {1, 0};
-
 struct Part {
     std::unordered_map<char, int64_t> ratings;
 
@@ -114,8 +86,7 @@ struct Workflow {
         return c;
     }
 
-    void simplify() {
-        // if destination is same for every rule, just leave rule
+    bool optimizationOneDestination() {
         auto dest = rules[0].dest;
         bool canSimplify = true;
         for (auto rule : rules) {
@@ -123,11 +94,18 @@ struct Workflow {
                 canSimplify = false;
             }
         }
-        if (canSimplify) {
+        if (canSimplify && rules.size() > 1) {
             Rule newRule;
             newRule.dest = dest;
             rules = {newRule};
+            return true;
         }
+        return false;
+    }
+
+    bool optimize() {
+        // if destination is same for every rule, just leave rule
+        return optimizationOneDestination();
     }
 
     friend std::istream& operator >> (std::istream &in, Workflow &work) {
@@ -147,6 +125,18 @@ struct Workflow {
 std::unordered_map<std::string, Workflow> workflows;
 std::vector<Part> parts;
 
+void optimize() {
+    bool changed = true;
+    while (changed) {
+        changed = false;
+        for (auto &w : workflows | std::views::values) {
+            changed |= w.optimize();
+        }
+
+        // TODO: If workflow has only goto, remove it and change it everywhere only to goto
+    }
+}
+
 int32_t main() {
 
     std::ifstream input;
@@ -157,9 +147,6 @@ int32_t main() {
     while (!input.eof()) {
 
         std::string inputRow;
-        // std::getline(input, inputRow);
-
-        // if (inputRow.empty()) continue;
 
         // Parse workflows
         while(true) {
@@ -203,6 +190,8 @@ int32_t main() {
         }
 
     }
+
+    optimize();
 
     int64_t sum = 0;
     for (auto &part : parts) {

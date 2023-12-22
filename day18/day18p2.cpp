@@ -2,52 +2,20 @@
 
 #define INPUT "input.txt"
 
-template <class T>
-inline void hash_combine(std::size_t& seed, const T& v)
-{
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-}
-
-struct pairhash {
-public:
-  template <typename T, typename U>
-  std::size_t operator()(const std::pair<T, U> &x) const
-  {
-    std::size_t seed = 0;
-    hash_combine(seed, x.first);
-    hash_combine(seed, x.second);
-
-    return seed;
-  }
-};
-
-using Direction = std::pair<int64_t, int64_t>;
-using Position = std::pair<int64_t, int64_t>;
-
-static const Direction RIGHT = {0, 1};
-static const Direction LEFT = {0, -1};
-static const Direction UP = {-1, 0};
-static const Direction DOWN = {1, 0};
-
 struct DigPlanEntry {
-    Direction dir;
+    helper::Point dir;
     int64_t ammount;
     std::string colorCode;
 
-    void dump() const {
-        std::cout << dir.first << ", " << dir.second << " " << ammount << " " << colorCode << std::endl;
-    }
-
-    Position dig(Position from) const {
-        return {from.first + dir.first * ammount, + from.second + dir.second * ammount};
+    helper::Point dig(const helper::Point &from) const {
+        return from + dir * ammount;
     }
 };
 
 helper::GridPolygon dig(const std::vector<DigPlanEntry> &plan) {
     helper::GridPolygon digMap;
 
-    Position cur = {0, 0};
+    helper::Point cur = {0, 0};
     digMap.points.push_back(cur);
 
     for (auto &entry : plan) {
@@ -82,12 +50,6 @@ int32_t main() {
         inputStream >> ch;
 
         DigPlanEntry entry;
-        if (ch == 'R') entry.dir = RIGHT;
-        else if (ch == 'L') entry.dir = LEFT;
-        else if (ch == 'D') entry.dir = DOWN;
-        else if (ch == 'U') entry.dir = UP;
-
-        inputStream >> entry.ammount;
 
         std::string dummy;
         std::getline(inputStream, dummy, ' ');
@@ -108,10 +70,10 @@ int32_t main() {
         ss1 << std::hex << second;
         ss1 >> direction;
 
-        if (direction == 0) entry.dir = RIGHT;
-        else if (direction == 2) entry.dir = LEFT;
-        else if (direction == 1) entry.dir = DOWN;
-        else if (direction == 3) entry.dir = UP;
+        if (direction == 0) entry.dir = helper::Point::RIGHT;
+        else if (direction == 2) entry.dir = helper::Point::LEFT;
+        else if (direction == 1) entry.dir = helper::Point::DOWN;
+        else if (direction == 3) entry.dir = helper::Point::UP;
 
         digPlan.push_back(entry);
     }
