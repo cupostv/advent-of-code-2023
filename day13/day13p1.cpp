@@ -43,28 +43,28 @@ int32_t hammingDistance(const iterator_type1 &leftB, const iterator_type1 &leftE
     return distance;
 }
 
-int32_t findReflection(const std::vector<std::string> &grid, bool hasSmudge) {
+int32_t findReflection(const std::vector<std::string> &grid) {
     // Smudge allows for 1 different element
     for (int32_t row = 1; row < grid.size(); row++) {
         // Get equal subgrid iters by splitting grid on row point
         const auto [lBegin, lEnd, rBegin, rEnd] = split(grid, row);
         // Get hamming distance between left and reversed right
-        if (hammingDistance(lBegin, lEnd, std::make_reverse_iterator(rEnd)) == hasSmudge)
+        if (hammingDistance(lBegin, lEnd, std::make_reverse_iterator(rEnd)) == 0)
             // Found reflection
             return row;
     }
     return -1;
 }
 
-int32_t solve(const std::vector<std::string> &grid, bool smudge = false) {
+int32_t solve(const std::vector<std::string> &grid) {
     // row reflection
-    auto reflection = findReflection(grid, smudge);
+    auto reflection = findReflection(grid);
     if (reflection != -1) {
         return reflection * 100;
     }
     else {
         // column reflection
-        reflection = findReflection(transpose(grid), smudge);
+        reflection = findReflection(transpose(grid));
         if (reflection == -1) {
             std::cout << "No reflection at all in the pattern!\n";
         }
@@ -81,8 +81,7 @@ int32_t main() {
 
     std::vector<std::string> pattern;
 
-    int32_t sum1 = 0;
-    int32_t sum2 = 0;
+    int32_t sum = 0;
     while (!input.eof()) {
 
         std::string inputRow;
@@ -93,16 +92,14 @@ int32_t main() {
         }
         if (inputRow.empty() || input.eof()) {
             // call the function for pattern
-            sum1 += solve(pattern, false);
-            sum2 += solve(pattern, true);
+            sum += solve(pattern);
             pattern.clear();
         } else {
             pattern.push_back(inputRow);
         }
     }
 
-    std::cout << "Part 1: " << sum1 << std::endl;
-    std::cout << "Part 2: " << sum2 << std::endl;
+    std::cout << sum << std::endl;
 
     return EXIT_SUCCESS;
 }

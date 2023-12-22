@@ -4,16 +4,11 @@
 
 struct Galaxy {
     static const char SYMBOL = '#';
-    int32_t x;
-    int32_t y;
-
-    void dump() {
-        std::cout << '(' << x << ", " << y << ")" << std::endl;
-    }
+    helper::Point position;
 
     int32_t getDistance(Galaxy other) {
         // Manhattan distance
-        return std::abs(x - other.x) + std::abs(y - other.y);
+        return position.manhattanDistance(other.position);
     }
 };
 
@@ -27,7 +22,7 @@ std::vector<Galaxy> loadGalaxies(const std::vector<std::string> &map, const int3
         bool hasGalaxy = false;
         for (int32_t col = 0; col < map[row].size(); col++) {
             if (map[row][col] == Galaxy::SYMBOL) {
-                galaxies.push_back({col, row + rowOffset});
+                galaxies.push_back({{col, row + rowOffset}});
                 hasGalaxy = true;
             }
         }
@@ -35,25 +30,6 @@ std::vector<Galaxy> loadGalaxies(const std::vector<std::string> &map, const int3
             rowOffset += (expandSize - 1);
         }
     }
-
-    // sort by rows
-    // std::sort(galaxies.begin(), galaxies.end(), [](const auto &a, const auto &b) {
-    //     return a.y < b.y;
-    // });
-
-    // int32_t currentRow = -1;
-    // int32_t rowOffset = 0;
-    // for(auto &g : galaxies) {
-    //     auto &row = g.y;
-    //     auto offset = row - currentRow - 1;
-    //     row = (offset * (expandMul - 1)) + row;
-    //     currentRow = row;
-    // }
-
-    // // sort by columns
-    // std::sort(galaxies.begin(), galaxies.end(), [](const auto &a, const auto &b) {
-    //     return a.x < b.x;
-    // });
 
     std::vector<int32_t> emptyCols = {0};
 
@@ -73,7 +49,7 @@ std::vector<Galaxy> loadGalaxies(const std::vector<std::string> &map, const int3
     }
 
     for (auto &g : galaxies) {
-        g.x += emptyCols[g.x];
+        g.position.x += emptyCols[g.position.x];
     }
 
     return galaxies;
