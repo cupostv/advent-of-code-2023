@@ -5,7 +5,9 @@
 struct Map {
     static const char BLOCKED = '#';
 
-    using Path = std::unordered_map<helper::Point, std::set<std::pair<helper::Point, int32_t>>, helper::PointHash>;
+    using Traversal = std::set< std::pair<helper::Point, int32_t>, std::greater<std::pair<helper::Point, int32_t>> >;
+
+    using Path = std::unordered_map<helper::Point, Traversal, helper::PointHash>;
 
     std::vector<std::string> grid;
 
@@ -85,6 +87,11 @@ struct Map {
                 int64_t max = 0;
 
                 for (auto [point, len] : paths[current]) {
+                    if (point == end) {
+                        // We know that end will be first point so we just need to take length to end
+                        visited[current] = false;
+                        return steps + len;
+                    }
                     // pass same visited set
                     auto numSteps = f(std::move(point), steps + len);
                     max = std::max(max, numSteps);

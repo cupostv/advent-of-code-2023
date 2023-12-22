@@ -27,6 +27,7 @@
 #include <cmath>
 #include <numeric>
 #include <algorithm>
+#include <functional>
 
 #include <climits>
 #include <cassert>
