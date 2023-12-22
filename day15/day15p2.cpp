@@ -2,31 +2,6 @@
 
 #define INPUT "input.txt"
 
-template <class T>
-inline void hash_combine(std::size_t& seed, const T& v)
-{
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-}
-
-struct pairhash {
-public:
-  template <typename T, typename U>
-  std::size_t operator()(const std::pair<T, U> &x) const
-  {
-    std::size_t seed = 0;
-    hash_combine(seed, x.first);
-    hash_combine(seed, x.second);
-
-    return seed;
-  }
-};
-
-// Determine the ASCII code for the current character of the string.
-// Increase the current value by the ASCII code you just determined.
-// Set the current value to itself multiplied by 17.
-// Set the current value to the remainder of dividing itself by 256.
-
 int32_t hash(char c, int32_t current = 0) {
     current += c;
     current *= 17;
@@ -50,9 +25,6 @@ struct Lens {
         return hash(label);
     }
 
-    friend auto operator<=>(const Lens &l1, const Lens &l2) {
-        return l1.label <=> l2.label;
-    }
     friend auto operator==(const Lens &l1, const Lens &l2) {
         return l1.label == l2.label;
     }
@@ -74,7 +46,7 @@ struct Box {
     void removeLens(const Lens &lens) {
         auto res = std::find(lenses.begin(), lenses.end(), lens);
         if (res != lenses.end()) {
-            lenses.erase(res);
+            lenses.erase(std::find(lenses.begin(), lenses.end(), lens));
         }
     }
 };
@@ -89,16 +61,15 @@ int32_t main() {
     if (!input) return EXIT_FAILURE;
 
     int64_t sum = 0;
-    // std::vector<std::string> map;
+
     while (!input.eof()) {
 
         std::string inputRow;
         std::getline(input, inputRow);
 
         if (inputRow.empty()) continue;
-
         std::stringstream inputStream(inputRow);
-        // map.push_back(inputRow);
+
         while (!inputStream.eof()) {
             std::string seq;
             std::getline(inputStream, seq, ',');
@@ -120,8 +91,6 @@ int32_t main() {
                 boxes[lens.boxIdx()].removeLens(lens);
             }
         }
-
-        // std::cout << inputRow << std::endl;
     }
 
     for (int32_t box = 0; box < boxes.size(); box++) {
