@@ -82,19 +82,17 @@ struct Map {
 
                 visited[current] = true;
 
-                int64_t max = steps;
+                int64_t max = 0;
 
-                bool allWrongWay = true;
                 for (auto [point, len] : paths[current]) {
                     // pass same visited set
                     auto numSteps = f(std::move(point), steps + len);
                     max = std::max(max, numSteps);
-                    if (numSteps != 0) allWrongWay = false;
                 }
 
                 visited[current] = false;
 
-                return allWrongWay ? 0 : max;
+                return max;
             };
 
         return f(start, 0);
