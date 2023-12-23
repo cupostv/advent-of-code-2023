@@ -35,6 +35,10 @@ struct Point {
         return *this + DOWN;
     }
 
+    std::array<Point, 4> getAdjacent() const {
+        return {getLeft(), getRight(), getUp(), getDown()};
+    }
+
     friend std::ostream& operator << (std::ostream& os, const Point& p) {
         os << "(" << p.x << "," << p.y << ")";
         return os;

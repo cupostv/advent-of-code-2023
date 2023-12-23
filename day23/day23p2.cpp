@@ -23,20 +23,12 @@ struct Map {
     }
 
     std::vector<helper::Point> getNext(const helper::Point &prev, const helper::Point &current) const {
-        auto r = current.getRight();
-        auto l = current.getLeft();
-        auto d = current.getDown();
-        auto u = current.getUp();
 
         std::vector<helper::Point> newPath;
-        if (r != prev && canFreelyMove(r))
-            newPath.push_back(std::move(r));
-        if (l != prev && canFreelyMove(l))
-            newPath.push_back(std::move(l));
-        if (d != prev && canFreelyMove(d))
-            newPath.push_back(std::move(d));
-        if (u != prev && canFreelyMove(u))
-            newPath.push_back(std::move(u));
+        newPath.reserve(3);
+        for (auto p : current.getAdjacent())
+            if (p != prev && canFreelyMove(p))
+                newPath.push_back(std::move(p));
 
         return newPath;
     }
@@ -126,8 +118,6 @@ int32_t main() {
         map.grid.push_back(inputRow);
     }
 
-    // find start in first row
-    // find end in last row
     map.start = {0, (int64_t)map.grid[0].find('.')};
     map.end = {(int64_t)map.grid.size() - 1, (int64_t)map.grid[map.grid.size() - 1].find('.')};
 

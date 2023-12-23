@@ -10,85 +10,53 @@ struct Map {
 
     std::vector<std::string> grid;
 
-    helper::Point start = {0, 1};
+    helper::Point start;
+    helper::Point end;
 
     bool isValid(const helper::Point p) const {
-        if (p.x >= 0 && p.x < grid.size() && p.y >= 0 && p.y < grid[0].size()) return true;
-        return false;
+        return p.isValid(0, 0, grid.size() - 1, grid[0].size() - 1);
     }
 
     bool canFreelyMove(const helper::Point p) const {
-        if (!isValid(p)) return false;
-        auto c = grid[p.x][p.y];
-        if (c == PATH) return true;
-        return false;
+        return isValid(p) && grid[p.x][p.y] == PATH;
     }
 
     bool isSlope(const helper::Point p) const {
-        if (!isValid(p)) return false;
-        if (grid[p.x][p.y] == SLOPE_DOWN || grid[p.x][p.y] == SLOPE_RIGHT) return true;
-        return false;
+        return isValid(p) && (grid[p.x][p.y] == SLOPE_DOWN || grid[p.x][p.y] == SLOPE_RIGHT);
     }
 
-    std::vector<helper::Point> getNext(const helper::Point prev, helper::Point current) const {
-        auto r = current.getRight();
-        auto l = current.getLeft();
-        auto d = current.getDown();
-        auto u = current.getUp();
+    std::vector<helper::Point> getNext(const helper::Point &prev, const helper::Point &current) const {
 
-        if (r != prev && canFreelyMove(r)) {
-            return {r};
-        } else if (l != prev && canFreelyMove(l)) {
-            return {l};
-        } else if (d != prev && canFreelyMove(d)) {
-            return {d};
-        } else if (u != prev && canFreelyMove(u)) {
-            return {u};
-        } else {
-            std::vector<helper::Point> newPath;
-            if (r != prev && isSlope(r)) {
-                newPath.push_back(r);
-            }
-            if (d != prev && isSlope(d)) {
-                newPath.push_back(d);
-            }
-            return newPath;
-        }
-        // End
-        return {};
+        for (auto p : current.getAdjacent())
+            if (p != prev && canFreelyMove(p))
+                return {std::move(p)};
+
+        std::vector<helper::Point> newPath;
+        for (auto p : {current.getRight(), current.getDown()})
+            if (p != prev && isSlope(p))
+                newPath.push_back(std::move(p));
+
+        return newPath;
+
     }
 
     int64_t hike() {
-        using Visited = std::unordered_map<helper::Point, bool, helper::PointHash>;
 
-        Visited visited;
-
-        std::function<int64_t(helper::Point, helper::Point, int64_t, Visited&)> f =
-            [&](helper::Point prev, helper::Point current, int64_t steps, Visited &visited) {
-                if (visited[current]) return (int64_t)0;
-                auto next = getNext(prev, current);
+        std::function<int64_t(helper::Point, helper::Point, int64_t)> f =
+            [&](helper::Point &&prev, helper::Point &&current, int64_t steps) {
+                auto next = std::move(getNext(prev, current));
                 if (next.size() == 0) return steps;
 
-                visited[current] = true;
-
-                int64_t max = steps;
+                int64_t max = 0;
 
                 for (auto point : next) {
-                    if (next.size() == 1) {
-                        // pass same visited set
-                        max = std::max(max, f(current, point, steps + 1, visited));
-                    } else {
-                        // make copy for every new path
-                        Visited temp = visited;
-                        max = std::max(max, f(current, point, steps + 1, temp));
-                    }
-
+                    max = std::max(max, f(std::move(current), std::move(point), steps + 1));
                 }
 
                 return max;
             };
 
-        return f(start.getLeft(), start, 0, visited);
+        return f(start.getLeft(), start, 0);
     }
 
 };
@@ -110,9 +78,10 @@ int32_t main() {
         if (inputRow.empty()) break;
 
         map.grid.push_back(inputRow);
-
-        // std::cout << inputRow << std::endl;
     }
+
+    map.start = {0, (int64_t)map.grid[0].find('.')};
+    map.end = {(int64_t)map.grid.size() - 1, (int64_t)map.grid[map.grid.size() - 1].find('.')};
 
     std::cout << map.hike() << std::endl;
 
