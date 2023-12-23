@@ -87,7 +87,7 @@ struct FallingBricks {
   std::vector<Brick> bricks;
 
   void sort() {
-    // std::sort(bricks.begin(), bricks.end());
+    // Bricks that have different p2.z will be at the end of one z value
     std::sort(bricks.begin(), bricks.end(), [](const auto &b1, const auto &b2) {
       if (b1.p1.z < b2.p1.z) return true;
       if (b1.p2.z < b2.p2.z) return true;
@@ -95,27 +95,32 @@ struct FallingBricks {
     });
   }
 
-  void squeeze() {
+  using Supporting = std::unordered_map<int32_t, std::vector<int32_t>>;
+  using SupportedBy = std::unordered_map<int32_t, std::set<int32_t>>;
+
+  auto squeezeAndGetSupport() {
     sort();
 
-    // bring bricks next to each other
+    // squeeze bricks to the lowest Z and stack them
+    // max brick size == 4
     auto lowestZ = bricks[0].p1.z;
 
-    std::unordered_map<int32_t, std::vector<Brick>> supports;
+    Supporting supports;
 
     for (int32_t i = 1; i < bricks.size(); i++) {
       int64_t maxZ = -1;
-      std::vector<Brick> maxSupports;
+      std::vector<int32_t> maxSupports;
       for (int32_t j = i - 1; j >= 0; j--) {
         if (bricks[i].p1.z == bricks[j].p1.z) continue;
         if (bricks[i].p1.z < bricks[j].p2.z) continue;
         auto [intersect, point] = bricks[i].intersects(bricks[j]);
         if (intersect) {
+          // TODO: break when tracking backwards once we
           if(point.z > maxZ) {
-            maxSupports = {bricks[j]};
+            maxSupports = {bricks[j].id};
           }
           else if (point.z == maxZ) {
-            maxSupports.push_back(bricks[j]);
+            maxSupports.push_back(bricks[j].id);
           }
           maxZ = std::max(maxZ, point.z);
           assert(maxZ < bricks[i].p2.z);
@@ -126,12 +131,24 @@ struct FallingBricks {
       } else {
         bricks[i].translateZ(maxZ + 1);
         for (auto max : maxSupports) {
-          supports[max.id].push_back(bricks[i]);
+          supports[max].push_back(bricks[i].id);
         }
       }
     }
 
-    // Check if brick can be disintegrated
+    return supports;
+  }
+
+  int64_t getDisintegratedCount() {
+    auto supports = std::move(squeezeAndGetSupport());
+
+    SupportedBy supportedBy;
+    for (auto [key, value] : supports) {
+      for (auto b : value) {
+        supportedBy[b].insert(key);
+      }
+    }
+
     int64_t disintegrated = 0;
     for (auto brick : bricks) {
       // Does brick support someone?
@@ -139,31 +156,22 @@ struct FallingBricks {
         disintegrated++;
         continue;
       }
+
       // Does someone else support bricks supported by this brick?
       bool someoneElse = true;
       for (auto b : supports[brick.id]) {
-        bool found = false;
-        for (auto [key, vec] : supports) {
-          if (key == brick.id) continue;
-
-          if (helper::find(vec, b)) {
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
+        if (helper::find(supportedBy[b], brick.id) && supportedBy[b].size() == 1)  {
           someoneElse = false;
           break;
         }
       }
-      // If yes, disintegrate current brick;
+
+      // If yes, disintegrate current brick
       if (someoneElse) {
         disintegrated++;
       }
     }
-
-    std::cout << disintegrated << std::endl;
-
+    return disintegrated;
   }
 };
 
@@ -211,7 +219,7 @@ int32_t main() {
         falling.bricks.push_back(Brick{p1, p2, i++});
     }
 
-    falling.squeeze();
+    std::cout << falling.getDisintegratedCount() << std::endl;
 
     return EXIT_SUCCESS;
 }

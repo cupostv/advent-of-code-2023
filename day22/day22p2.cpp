@@ -95,28 +95,32 @@ struct FallingBricks {
     });
   }
 
-  void squeeze() {
+  using Supporting = std::unordered_map<int32_t, std::vector<int32_t>>;
+  using SupportedBy = std::unordered_map<int32_t, std::set<int32_t>>;
+
+  auto squeezeAndGetSupport() {
     sort();
 
-    // bring bricks next to each other
+    // squeeze bricks to the lowest Z and stack them
+    // max brick size == 4
     auto lowestZ = bricks[0].p1.z;
 
-    std::unordered_map<int32_t, std::vector<Brick>> supports;
-    std::unordered_map<int32_t, std::set<int32_t>> supportedBy;
+    Supporting supports;
 
     for (int32_t i = 1; i < bricks.size(); i++) {
       int64_t maxZ = -1;
-      std::vector<Brick> maxSupports;
+      std::vector<int32_t> maxSupports;
       for (int32_t j = i - 1; j >= 0; j--) {
         if (bricks[i].p1.z == bricks[j].p1.z) continue;
         if (bricks[i].p1.z < bricks[j].p2.z) continue;
         auto [intersect, point] = bricks[i].intersects(bricks[j]);
         if (intersect) {
+          // TODO: break when tracking backwards once we
           if(point.z > maxZ) {
-            maxSupports = {bricks[j]};
+            maxSupports = {bricks[j].id};
           }
           else if (point.z == maxZ) {
-            maxSupports.push_back(bricks[j]);
+            maxSupports.push_back(bricks[j].id);
           }
           maxZ = std::max(maxZ, point.z);
           assert(maxZ < bricks[i].p2.z);
@@ -127,87 +131,67 @@ struct FallingBricks {
       } else {
         bricks[i].translateZ(maxZ + 1);
         for (auto max : maxSupports) {
-          supports[max.id].push_back(bricks[i]);
+          supports[max].push_back(bricks[i].id);
         }
       }
     }
 
-    for (auto brick : bricks) {
-      for (auto [key, value] : supports) {
-        for (auto b : value) {
-          supportedBy[b.id].insert(key);
-        }
+    return supports;
+  }
+
+  auto getFallenCount() {
+    auto supports = std::move(squeezeAndGetSupport());
+    SupportedBy supportedBy;
+
+    for (auto [key, value] : supports) {
+      for (auto id : value) {
+        supportedBy[id].insert(key);
       }
     }
 
-    std::vector<Brick> unsafe;
+    std::vector<int32_t> unsafe;
 
-    // Check if brick can be disintegrated
-    int64_t disintegrated = 0;
-    for (auto brick : bricks) {
+    for (auto brick : bricks | std::views::transform([](const auto &b) { return b.id; })) {
       // Does brick support someone?
-      if (supports[brick.id].size() == 0) {
-        disintegrated++;
-        continue;
-      }
       // Does someone else support bricks supported by this brick?
-      bool someoneElse = true;
-      for (auto b : supports[brick.id]) {
-        bool found = false;
-        for (auto key : supportedBy[b.id]) {
-          if (key == brick.id) continue;
-          found = true;
-          break;
-        }
-        if (!found) {
-          someoneElse = false;
-          break;
+      for (auto b : supports[brick]) {
+        if (helper::find(supportedBy[b], brick) && supportedBy[b].size() == 1)  {
+          unsafe.push_back(brick);
+          break;;
         }
       }
-      // If yes, disintegrate current brick;
-      if (someoneElse) {
-        disintegrated++;
-        continue;
-      }
-      unsafe.push_back(brick);
-    }
 
-    std::cout << "Disintegrated: " << disintegrated << std::endl;
+    }
 
     int64_t sum = 0;
     for (auto b : unsafe) {
       std::set<int32_t> fallen;
       std::deque<int32_t> toFall;
-      for (auto key : supports[b.id] | std::views::transform([](const auto &el) { return el.id; })) {
-        bool hasOtherSupport = false;
-        for (auto key : supportedBy[key]) {
-          if (key == b.id) continue;
-          hasOtherSupport = true;
-          break;
-        }
-        if (!hasOtherSupport)
+
+      for (auto key : supports[b]) {
+        bool hasOtherSupport = true;
+        if (helper::find(supportedBy[key], b) && supportedBy[key].size() == 1)
           toFall.push_back(key);
       }
 
       while (!toFall.empty()) {
         auto brick = toFall.front();
         toFall.pop_front();
+
         if (fallen.insert(brick).second) {
           // Add children to queue
           for (auto keyBrick : supports[brick]) {
-            if (!helper::find(toFall, keyBrick.id) && !helper::find(fallen, keyBrick.id)) {
-              // Does this brick have support that did not already fell
-              bool hasSupport = false;
-              for (auto key : supportedBy[keyBrick.id]) {
-                if (helper::find(fallen, key)) continue;
-                // will this brick fall in future? if we go back the tree, does this brick have support
-
+            if (helper::find(fallen, keyBrick)) continue;
+            // Does this brick have at least one support that did not already fell
+            bool hasSupport = false;
+            for (auto key : supportedBy[keyBrick]) {
+              if (!helper::find(fallen, key)) {
                 hasSupport = true;
                 break;
               }
-              if (!hasSupport)
-                toFall.push_back(keyBrick.id);
             }
+            if (!hasSupport)
+              toFall.push_back(keyBrick);
           }
         }
       }
@@ -215,7 +199,7 @@ struct FallingBricks {
       sum += fallen.size();
     }
 
-    std::cout << "Fallen: " << sum << std::endl;
+    return sum;
   }
 
 };
@@ -264,7 +248,7 @@ int32_t main() {
         falling.bricks.push_back(Brick{p1, p2, i++});
     }
 
-    falling.squeeze();
+    std::cout << "Fallen: " << falling.getFallenCount() << std::endl;
 
     return EXIT_SUCCESS;
 }
