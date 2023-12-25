@@ -7,20 +7,6 @@ struct ScratchCard {
     std::vector<int32_t> winningNumbers;
     std::vector<int32_t> myNumbers;
 
-    int32_t getPoints() const {
-        int32_t points = 0;
-        for (auto num : myNumbers) {
-            if (helper::find(winningNumbers, num)) {
-                if (points == 0) {
-                    points = 1;
-                } else {
-                    points *= 2;
-                }
-            }
-        }
-        return points;
-    }
-
     int32_t winCount() const {
         int32_t count = 0;
         for (auto num : myNumbers) {
@@ -35,15 +21,7 @@ struct ScratchCard {
 struct CardDeck {
     std::vector<ScratchCard> cards;
 
-    int32_t getPoints() {
-        int32_t points = 0;
-        for (const auto &card : cards) {
-            points += card.getPoints();
-        }
-        return points;
-    }
-
-    int32_t getTotalCards() {
+    int32_t getTotalCards() const {
         std::vector<int32_t> counts(cards.size(), 1);
         for (const auto &card : cards) {
             int32_t count = card.winCount();
@@ -54,11 +32,6 @@ struct CardDeck {
         return std::accumulate(counts.begin(), counts.end(), 0);
     }
 };
-
-
-
-std::unordered_map<int32_t, int32_t> cards;
-std::vector<int32_t> totalCards;
 
 int32_t main() {
 
@@ -73,7 +46,6 @@ int32_t main() {
 
     while (!input.eof()) {
         ScratchCard card;
-        // std::vector<int> myNumbers;
 
         std::string inputRow;
         std::getline(input, inputRow);
@@ -104,13 +76,6 @@ int32_t main() {
     }
 
     std::cout << deck.getTotalCards() << std::endl;
-
-    int count = 0;
-    for (auto [id, cnt] : cards) {
-        count += cnt;
-    }
-
-    std::cout << count << std::endl;
 
     return EXIT_SUCCESS;
 }

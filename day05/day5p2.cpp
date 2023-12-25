@@ -27,7 +27,7 @@ struct Range {
         return {-1, -1};
     }
 
-    std::vector<Range> split(const Range &intersection) {
+    std::vector<Range> split(const Range &intersection) const {
         std::vector<Range> ranges;
 
         if (intersection.start > start)
@@ -37,10 +37,6 @@ struct Range {
             ranges.push_back({intersection.start + intersection.length, end() - intersection.end()});
 
         return ranges;
-    }
-
-    void dump() const {
-        std::cout << start << " " << length << std::endl;
     }
 };
 
@@ -82,14 +78,6 @@ static inline int64_t mapValueToValue(std::vector<Map> mapValueToValue, int64_t 
 struct MapResult {
     std::vector<Range> sameValue;
     std::vector<Range> mapValue;
-
-    void dump() {
-        std::cout << "Same values: " << std::endl;
-        for (auto range : sameValue) {
-            std::cout << "start: " << range.start << " length: " << range.length << std::endl;
-        }
-        std::cout << "############" << std::endl;
-    }
 };
 
 std::vector<Range> mapRangeToRange(std::vector<Map> mapRangeToRange, Range srcRange) {
