@@ -1,6 +1,6 @@
 #include "../helpers/includes.hpp"
 
-#define GAMES "games.txt"
+#define INPUT "input.txt"
 
 struct HandPull {
     static const int32_t MAX_R = 12;
@@ -10,10 +10,6 @@ struct HandPull {
     int32_t r = 0;
     int32_t g = 0;
     int32_t b = 0;
-
-    int32_t getPower() const {
-        return r * g * b;
-    }
 };
 
 struct Game {
@@ -40,23 +36,12 @@ struct Game {
         return maxPull;
     }
 
-    int32_t getPower() const {
-        return getMax().getPower();
-    }
 };
 
 class Games {
 public:
     void add(Game &&game) {
         games.push_back(game);
-    }
-
-    int32_t totalPower() const {
-        auto powerView = games | std::views::transform([](const auto &g) {
-            return g.getPower();
-        });
-
-        return std::accumulate(powerView.begin(), powerView.end(), 0);
     }
 
     int32_t totalValid() const {
@@ -73,7 +58,7 @@ private:
 int32_t main() {
 
     std::ifstream gamesFile;
-    gamesFile.open(GAMES);
+    gamesFile.open(INPUT);
 
     if (!gamesFile) return EXIT_FAILURE;
 
@@ -120,8 +105,8 @@ int32_t main() {
         games.add(std::move(game));
     }
 
-    std::cout << "Total valid: " << games.totalValid() << std::endl;
-    std::cout << "Total power: " << games.totalPower() << std::endl;
+    std::cout << games.totalValid() << std::endl;
+
 
     return EXIT_SUCCESS;
 }

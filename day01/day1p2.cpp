@@ -1,6 +1,6 @@
 #include "../helpers/includes.hpp"
 
-#define CALIBRATION "calibration.txt"
+#define INPUT "input.txt"
 
 const std::unordered_map<std::string, int32_t> numbers = {
     {"0", 0},
@@ -51,7 +51,7 @@ int32_t decodeCalibrationEntry(const std::string_view entry) {
 int32_t main() {
 
     std::ifstream calibration;
-    calibration.open(CALIBRATION);
+    calibration.open(INPUT);
 
     if (!calibration) return EXIT_FAILURE;
 

@@ -107,23 +107,11 @@ struct EngineSchematic {
         }
     }
 
-    int64_t getGearRatio() const {
-        auto ratioView = gears | std::views::values | std::views::transform([](const auto &parts) {
-            return parts.size() == 2 ? parts[0] * parts[1] : 0;
-        });
-        return std::accumulate(ratioView.begin(), ratioView.end(), (int64_t)0);
-    }
-
     int32_t getPartsSum() const {
         auto partsSumView = engineMap | std::views::values | std::views::transform([](const auto &parts) {
             return std::accumulate(parts.begin(), parts.end(), 0);
         });
         return std::accumulate(partsSumView.begin(), partsSumView.end(), 0);
-    }
-
-    void dumpEngineParts() const {
-        std::cout << "Parts sum: " << getPartsSum() << std::endl;
-        std::cout << "Gear ratio: " << getGearRatio() << std::endl;
     }
 };
 
@@ -133,8 +121,8 @@ class Engine {
             map.loadEngineSchematic(engineSchematic);
         }
 
-        void dumpEngineParts() const {
-            map.dumpEngineParts();
+        int32_t getPartsSum() const {
+            return map.getPartsSum();
         }
 
     private:
@@ -161,7 +149,8 @@ int32_t main() {
     }
 
     Engine engine(engineSchematic);
-    engine.dumpEngineParts();
+
+    std::cout << engine.getPartsSum() << std::endl;
 
     return EXIT_SUCCESS;
 }
